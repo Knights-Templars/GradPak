@@ -1,35 +1,5 @@
 #! /usr/bin/python
 #
-##################################################
-#
-# This script sets up multiple flats so they can be used as a single
-# input to dohydra. You will want to do this because an exposure that
-# puts enough signal in the 200 micron fibers will push the larger
-# fibers into the non-linear regime.
-#
-# The calling syntax is:
-# 
-# > python GradPak_flatfu.py Flat1 Flat2... Flatn pivot1 pivot2... pivotn-1
-#
-# Where the pivots define the aperture at which to cut the flat,
-# inclusive. For example, if the call is:
-#
-# > python GradPak_flatfu.py Flat1.fits Flat2.fits 70
-#
-# Then the resulting master flat will have apertures 1 - 70 from
-# Flat1.fits and 71 - 109 from Flat2.fits.
-#
-# Flat1 is the flat used for the aperture extraction of the entire
-# run, so it should probably be the one with the longest exposure. 
-#
-# All the flats are scaled by their exposure times and then cut up as
-# specified by the user. The final, master flat lives only as a .ms
-# multispec file. For this reason it is imperative that you set the
-# "flat" parameter to EXACTLY dFlat_master.fits. Nothing else will
-# work. Even when you do this dohydra will complain that it can't find
-# dFlat_master.fits. This warning is OK; dohydra will still do
-# everything you want it to.
-#
 # History:
 #      v1 - A. Eigenbrot Nov. 2014
 #      v1.1 - A. Eigenbrot Dec. 2014
@@ -39,7 +9,42 @@
 #               Added shutter lag correction
 #
 ####################################################
+"""
+GradPak_flatfu
+==============
+This script combines up multiple flats so they can be used as a single input to dohydra. You will want to do this because an exposure that puts enough signal in the 200 micron fibers will push the larger fibers into the non-linear regime. The calling syntax is::
+ 
+    > python GradPak_flatfu.py Flat1 Flat2... Flatn pivot1 pivot2... pivotn-1
 
+Where the pivots define the aperture at which to cut the flat,
+inclusive. For example, if the call is::
+
+    > python GradPak_flatfu.py Flat1.fits Flat2.fits 70
+
+Then the resulting master flat will have apertures 1 - 70 from
+Flat1.fits and 71 - 109 from Flat2.fits.
+
+By default, Flat1 is the flat used for the aperture extraction of the entire run, but this can be changed with the *-t* flag (see below).
+
+All the flats are scaled by their exposure times and then cut up as specified by the user. The final, master flat lives only as a .ms multispec file. For this reason it is imperative that you set the "flat" parameter to EXACTLY "dFlat_master.fits". Nothing else will work. Even when you do this dohydra will complain that it can't find dFlat_master.fits. This warning is OK; dohydra will still do everything you want it to.
+
+Options
+-------
+
+-t        Use the next flat as the flat for tracing apertures. **NOTE** the resulting aperture definitions will be used for all of your data, so make sure it's good.
+-r file   Use the flat in *file* for fiber throughput determinations. Equivalent to *throughput=file* in **dohydra**
+-nf       Do NOT divide the final flat by its average spectrum. Normally this division is done so that the spectral signature of the flat lamps is not divided into the data frames, but if you want to keep that spectrum this option is for you. Similar to *fitflat-* in **dohydra**.
+
+Useful Example
+--------------
+
+I have found that often the lower exposure flat fields produce better aperture traces (because the large fibers are not saturated), and that typically it is a good idea to pivot around fiber 43 so that the 2'' and 3'' fibers use one flat and the 4'', 5'', and 6'' use another. With this in mind I almost always type::
+
+    >python GradPak_flatfu.py dFlat_4s.fits -t dFlat_1s.fits 43
+
+Functions
+---------
+"""
 
 import os
 import sys
@@ -65,10 +70,10 @@ else:
     APIDTABLE = '/usr/users/eigenbrot/research/Pak/gradpak_sizes.iraf'
 
 def scale_images(hdulist):
-    '''
-    Take in a list of fits HDUS and scale the data in all of them to
-    the exposure time of the first HDU
-    '''
+    """Take in a list of fits HDUS and scale the data in all of them to the exposure time of the first HDU
+
+    I think this function is no longer used, so I won't document it.
+    """
     exptimes = [h.header['EXPTIME'] for h in hdulist]
     scales = exptimes[0]/np.array(exptimes)
     
@@ -81,7 +86,10 @@ def scale_images(hdulist):
     return hdulist
 
 def scale_spectra(imagelist):
+    """Scale spectra based on an overlapping group of fibers.
 
+    I think this function is no longer used, so I won't document it.
+    """
     fiber1 = 20
     fiber2 = 43
 
@@ -99,6 +107,29 @@ def scale_spectra(imagelist):
     return outputnames
 
 def shutter_correction(imagelist):
+    """Apply a correction to account for spectral signatures caused by lagging shutter.
+
+    The WIYN bench has linear shutter that has asymmetric opening and closing times. At exposure times less than ~7 seconds this asymmetry can introduce an artificial spectral signature at the few % level. Furthermore, the magnitude of this artificial spectrum varies with exposure time. This becomes a problem when trying to stitch together two flats taken at short, but not equal exposure times; each flat will have a different "shutter spectrum".
+
+    To account for this we look at a set of fibers expected to have good signal in both flats and use them to normalize both the spectral shapes and total flux to a common value.
+    
+    Parameters
+    ----------
+
+    imagelist : list of str
+        The names of IRAF multispec files to perform the correction on
+
+    Returns
+    -------
+    outputnames : list of str
+        The main result is to create and write new files with the shutter correction applied. These are giving the suffix "_shut.ms.fits" and their names are returned in a list.
+
+    Notes
+    -----
+
+    The current default is to use the 3'' fibers as the overlapping set of fibers on which to base the correction. This might not be always true for all GradPak usage cases. Watch out.
+
+    """
 
     fiber1 = 20
     fiber2 = 43
@@ -119,11 +150,14 @@ def shutter_correction(imagelist):
     return outputnames
 
 def setup_files(flatlist):
-    '''
+    """Prepare flats for dohydra run
+
     Take in a list of names of flat fields, scale the data by exposure
     time, and then write them out to appropriatly named files.
     Also create a dummy spectrum that will be "reduced" by dohydra.
-    '''
+    
+    This function might not be used anymore.
+    """
     hdulist = [pyfits.open(i)[0] for i in flatlist]
     hdulist = scale_images(hdulist)
 
@@ -140,10 +174,22 @@ def setup_files(flatlist):
     return scalednames
 
 def make_tmp(hdu):
-    '''
-    Make the dummy spectrum to be reduced by dohydra. This spectrum is
-    all ones so that the affect of the flat scaling can be seen.
-    '''
+    """Make the dummy spectrum to be reduced by **dohydra**. 
+
+    This spectrum is passed as the 'object' spectrum to **dohydra** and only exists to allow the routine to run properly. It is set to all ones so that the affect of the flat scaling can be seen.
+
+    Parameters
+    ----------
+
+    hdu : pyfits.PrimaryHDU object
+        HDU that is characteristic of the flats and data used during reduction. This header will be copied to the temporary file and the object changed to 'FlatFu tmp'.
+
+    Returns
+    -------
+    None
+        The result is 'ffTmp.fits', which will passed as the object to internal **dohydra** runs.
+
+    """
     tmpdata = np.ones(hdu.data.shape)
     tmphdu = pyfits.PrimaryHDU(tmpdata,hdu.header)
     tmphdu.header['OBJECT'] = 'FlatFu tmp'
@@ -154,12 +200,36 @@ def make_tmp(hdu):
     return
 
 def initial_run(scalednames,traceflat,throughput=''):
-    '''
-    Use dohydra to extract .ms multispec files from the input flat
-    fields. This is done so that we can stitch them back together in
-    aperture space rather than pixel space. To save time we don't
-    bother with any sort of wavelength solution or other garbage.
-    '''
+    """Use **dohydra** to extract .ms multispec files from the input flat fields. 
+    
+    This is done so that we can stitch them back together in aperture space rather than pixel space. To save time we don't bother with any sort of wavelength solution or other garbage. Essentially all we do is aperture extraction, but in a way that will enable future **dohydra** runs on actual data.
+
+    Parameters
+    ----------
+
+    scalednames : list of str
+        The names of flat images that have had shutter correction applied
+    
+    traceflat : str
+        Name of the flat to be used for tracing apertures
+    
+    throughput : str, optional
+        Name of the image to use for throughput correction
+
+    Returns
+    -------
+    
+    outputnames : list of str
+        The names of the extracted flat field multispec images
+    
+    outputscales : list of float 
+        List of scaling applied to each flat by **dohydra**. This is returned so that it can be undone later.
+
+    Notes
+    -----
+    **dohydra** automatically scales each extracted flat so that the mean is 1. This messes up our careful shutter correction/scaling so we need to keep track of these scales for future use.
+    
+    """
     
     oldlog = iraf.hydra.logfile
     print 'Doing initial flat aperture extraction...'
@@ -226,14 +296,33 @@ def initial_run(scalednames,traceflat,throughput=''):
     return outputnames, outputscales
 
 def stitch_flats(outputnames,pivots,outstring):
-    '''
-    Take a list of names of multispec flat files produced by dohydra
-    and a list of pivot apertures and stitch together a master flat.
+    """Take a list of multispec files and a list of pivots and stitch together a master flat.
 
-    The pivot values are inclusive, so if pivots = [72] then the
-    master flat will contain apertures 1 - 72 from flat #1 and 73 -
-    109 from flat #2
-    '''
+    The pivot values are inclusive, so if pivots = [72] then the master flat will contain fibers 1 - 72 from flat #1 and 73 - 109 from flat #2.
+
+    Parameters
+    ----------
+    
+    outputnames : list of str
+        Names of the multispec files to stitch together
+    
+    pivots : list of int
+        The fibers that form the borders of the stitch. If outputnames is length N, pivots must be length N - 1
+    
+    outstring : str
+        The special, IRAF scrunch string used to identify intermediate files associated with a **dohydra** run
+
+    Returns
+    -------
+    
+    mastername : str
+        The name of the stitched master multispec flat
+
+    Notes
+    -----
+    The specifics of outstring depend on system and IRAF distribution. See :meth:`GradPak_flatfu.get_scrunch`
+
+    """
     pivots = [0] + pivots + [109]
 
     tmpfiles = []
@@ -272,33 +361,51 @@ def stitch_flats(outputnames,pivots,outstring):
     return mastername
 
 def get_scrunch(flatname, msname):
-    '''
-    Take in two strings and return the difference between them, modulo
-    the difference between .ms.fits and .fits. 
+    """Take in two strings and return the difference between them, modulo the difference between .ms.fits and .fits. 
 
-    This is used to figure out what scrunching scheme IRAF used to
-    name the aperture-extracted flats. This function exists because
-    IRAF has different behavior when it comes to scrunching on
-    different systems.
-    '''
+    This is used to figure out what scrunching scheme IRAF used to name the aperture-extracted flats. This function exists because IRAF has different behavior when it comes to scrunching on different systems.
+
+    Parameters
+    ----------
+    
+    flatname : str
+        Name of the raw, un-extracted file
+
+    msname : str
+        Name of the same file, after extraction by **dohydra**
+
+    Returns
+    -------
+
+    scrunchstring : str
+        The scrunch string used by this systems's IRAF
+
+    """
     basefname = flatname.split('.fits')[0]
     basemsname = msname.split('.ms.fits')[0]
     
     return basemsname.replace(basefname,'')
 
 def mean_scale(mslist,scalelist):
-    '''
-    Take in a list of fits file names and scale each file by the corresponding
-    value in the scalelist. The input file is overwritten.
+    """Take in a list of fits file names and scale each file by the corresponding value in the scalelist.
 
-    When constructing the aperture-extracted flat that will be applied
-    to all data apertures IRAF's last step is to normalize the entire
-    multispec file to a unity mean. Because we will be stitching
-    together a few different flats we need to undo this scaling so the
-    relative strengths of the individual flats is maintained. This
-    assumes that these flats were already properly scaled (see
-    scale_images()).
-    '''
+    When constructing the aperture-extracted flat that will be applied to all data apertures IRAF's last step is to normalize the entire multispec file to a unity mean. Because we will be stitching together a few different flats we need to undo this scaling so the relative strengths of the individual flats is maintained. This assumes that these flats were already properly scaled (see :meth:GradPak_flatfu.shutter_correction).
+
+    Parameters
+    ----------
+    
+    mslist : list of str
+        Names of files to have **dohydra** scaling removed
+    
+    scalelist : list of float
+        Scales applied to flats by **dohydra**
+
+    Returns
+    -------
+    None : 
+        The input files are overwritted with **dohydra**'s scaling removed
+
+    """
     print 'Undoing IRAF flat scaling...'
     mshdulist = [pyfits.open(i)[0] for i in mslist]
     for h, name, scale in zip(mshdulist, mslist, scalelist):
@@ -309,7 +416,26 @@ def mean_scale(mslist,scalelist):
     return
 
 def fit_flat(mastername):
+    """Remove average spectra signature form multispec flat field
+    
+    This mimics the *fitflat* parameter in **dohydra**. The average spectrum is computed across all fibers and then divided into each fiber.
 
+    Parameters
+    ----------
+
+    mastername : str
+        Name of the flat to fit
+
+    Returns
+    -------
+    None : 
+        The input image is overwritted with the spectrally normalized version of itself.
+
+    Notes
+    -----
+    Because of the different fiber sizes it is very likely that there will be some systematic residual spectral signature in the master flat. This is OK because you'll get rid of that during flux calibration.
+    
+    """
     print 'Dividing out average spectrum'
     h = pyfits.open(mastername)[0]
     h.data /= np.mean(h.data,axis=0)
@@ -318,15 +444,23 @@ def fit_flat(mastername):
     return
 
 def normalize(mastername):
-    '''
-    Take the name of a fits file and normalize it so the mean over all pixels is 1. The input file is overwritten.
+    """Normalize a fits file so the mean over all pixels is 1.
 
-    This function exists to keep reduction as close as possible to
-    IRAF's own routines. In msresp1d the last step is to normalize the
-    flat so the mean is one. In mean_scale() we undid this scaling so
-    that the flats could be stitched together. This function reapplys
-    this normalization to the stitched together flat.
-    '''
+    This function exists to keep reduction as close as possible to IRAF's own routines. In msresp1d the last step is to normalize the flat so the mean is one. In :meth:GradPak_flatfu.mean_scale we undid this scaling so that the flats could be stitched together. This function recomputes this normalization to the stitched together flat.
+
+    Parameters
+    ----------
+
+    mastername : str
+        Name of the flat to be normalized
+
+    Returns
+    -------
+
+    None : None
+        The input file is overwritten with a version of itself with total flux = 1
+
+    """
     print 'Renormalizing final flat'
     h = pyfits.open(mastername)[0]
     h.data /= np.mean(h.data)
@@ -335,11 +469,33 @@ def normalize(mastername):
     return
 
 def parse_input(inputlist):
-    '''
-    Take the list of arguments passed to the terminal when this
-    program was called and parse them into useful arguments and
-    options.
-    '''
+    """Parse arguments given to this module by the shell into useful function arguments and options
+
+    Parameters
+    ----------
+    
+    inputlist : list of str
+        Probably sys.argv
+
+    Returns
+    -------
+    
+    flat_list : list of str
+        Names of flats to be stitched together
+
+    pivot_list : list of int
+        Pivot points about which to stitch the flats
+
+    traceflat : str
+        Flat used for aperture extraction
+
+    throughput : st
+        Flat used for throughput correction. Can be an empty string (no special throughput file is used).
+
+    fitflat : bool
+        If True, fit out the average spectrum from the final flat
+
+    """
     flat_list = []
     pivot_list = []
     fitflat = True
@@ -369,9 +525,8 @@ def parse_input(inputlist):
     return flat_list, pivot_list, traceflat, throughput, fitflat
 
 def print_help():
-    '''
-    Print usage help.
-    '''
+    """Print usage help.
+    """
     print """Calling syntax:
     
 > GradPak_flatfu.py flat1.fits flat2.fits ... flatn.fits pivot
@@ -398,10 +553,20 @@ def print_help():
     return
 
 def main():
-    '''
-    Parse the user inputs, check that there are the right number of
-    pivot points, and run through the steps in the script.
-    '''
+    """Parse the user inputs, check that there are the right number of pivot points, and run through the script.
+
+    The steps are:
+    
+    #. Make dummy ffTmp.fits file
+    #. Extract input flats using **dohydra**
+    #. Undo the **dohydra** normalization
+    #. Perform shutter correction
+    #. Stitch flats together
+    #. Optionally remove average spectral signature
+    #. Normalize master flat to mean flux of 1
+    #. Set external **dohydra** parameters so the user can call it from IRAF directly
+
+    """
     flat_list, pivot_list, traceflat, throughput, fitflat = parse_input(sys.argv[1:])
 
     print 'Flat list is {}'.format(flat_list)

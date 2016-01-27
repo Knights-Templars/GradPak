@@ -51,6 +51,7 @@ def skysub(imagename,fibersize):
 
     Parameters
     ----------
+
     imagename : str
         Name of the fits file to do sky subtraction on. It should be a file that can be recognized by the hydra package.
 
@@ -64,7 +65,7 @@ def skysub(imagename,fibersize):
 
     Notes
     -----
-    This is a helper function that should probably not be called directly unless you know what you're doing. The main result is a .ms file that contains sky subtracted spectra for only that particular fiber size. For this function to work you need to have set the **apidtab** in dohydra to gradpak_sizes.iraf.
+    This is a helper function that should probably not be called directly unless you know what you're doing. The main result is a .ms file that contains sky subtracted spectra for only that particular fiber size. For this function to work you need to have set *apidtab = gradpak_sizes.iraf* in **dohydra**.
 
     """
     skyname = '{:}.ms_s{:n}_lin.fits'.\
