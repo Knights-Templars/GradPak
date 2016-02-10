@@ -165,7 +165,7 @@ def create_locations(binfile, galcenter=[35.637962,42.347629],
         r_diff = ra_diff*np.cos(parad) - dec_diff*np.sin(parad)
         z_diff = -1*(ra_diff*np.sin(parad) + dec_diff*np.cos(parad))
 
-        print i+1, p.center, r_diff, z_diff
+        print i+1, p.center, ra_diff, dec_diff, r_diff, z_diff
 
         f.write(str('{:7n}'+5*'{:10.3f}'+'\n').format(i,
                                                              radius,

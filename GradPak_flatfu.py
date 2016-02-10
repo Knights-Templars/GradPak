@@ -40,7 +40,7 @@ Useful Example
 
 I have found that often the lower exposure flat fields produce better aperture traces (because the large fibers are not saturated), and that typically it is a good idea to pivot around fiber 43 so that the 2'' and 3'' fibers use one flat and the 4'', 5'', and 6'' use another. With this in mind I almost always type::
 
-    >python GradPak_flatfu.py dFlat_4s.fits -t dFlat_1s.fits 43
+    > python GradPak_flatfu.py dFlat_4s.fits -t dFlat_1s.fits 43
 
 Functions
 ---------
