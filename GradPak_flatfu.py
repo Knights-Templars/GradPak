@@ -12,6 +12,7 @@
 """
 GradPak_flatfu
 ==============
+
 This script combines up multiple flats so they can be used as a single input to dohydra. You will want to do this because an exposure that puts enough signal in the 200 micron fibers will push the larger fibers into the non-linear regime. The calling syntax is::
  
     > python GradPak_flatfu.py Flat1 Flat2... Flatn pivot1 pivot2... pivotn-1

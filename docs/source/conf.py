@@ -120,7 +120,7 @@ html_theme = 'classic'
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+html_theme_path = ["/usr/users/eigenbrot/opt/sphinx_themes"]
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
