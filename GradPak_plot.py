@@ -485,7 +485,7 @@ def prep_patches(values,
     return patches, pval, refcenter
 
 def plot(values, binheader = None, plotbins = False,
-         ax = None, figsize = (8,8),
+         ax = None, figsize = (8,8),alpha=1.0,
          fitsfile = None, imrot = False, wcsax = True, invert=True,
          pa = 0, center = [0,0], reffiber = 105, 
          clabel = '', cmap = 'gnuplot2', minval = None, maxval = None,
@@ -605,7 +605,8 @@ def plot(values, binheader = None, plotbins = False,
                                  cmap=plt.get_cmap(cmap),
                                  norm=matplotlib.colors.Normalize(
                                      vmin=minval,vmax=maxval),
-                                 edgecolor = 'none')
+                                 edgecolor = 'none',
+                                 alpha=alpha)
     collection.set_array(pval)
     ax.add_collection(collection)
 
@@ -618,7 +619,8 @@ def plot(values, binheader = None, plotbins = False,
                                   cmap=plt.get_cmap(cmap),
                                   norm=matplotlib.colors.Normalize(
                                       vmin=minval,vmax=maxval),
-                                  edgecolor = 'none')
+                                  edgecolor = 'none',
+                                  alpha=alpha/1.3)
         boxColl.set_array(bval)
         ax.add_collection(boxColl)
 
