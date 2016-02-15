@@ -5,8 +5,9 @@
 #
 ###################################################
 """
+**************
 GradPak_skysub
-==============
+**************
 
 This is a script used to do sky subtraction on multispec files produced by the WIYN Bench Spectrograph and the GradPak IFU. To make use of this script the spectra need to be reduced usig the gradpak_sizes.iraf aperture table. This table defines different beam numbers for each fiber size such that the beam number is fibersize(in microns)/100. The sky fibers are assigned beam numbers as fibersize/100\*11.
 

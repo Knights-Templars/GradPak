@@ -3,21 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-**********************
-Guide to Using GradPak
-**********************
+#############
+Using Gradpak
+#############
 
 .. toctree::
    :maxdepth: 2
 
    Data_Reduction
 
-***********
+###########
 GradPak API
-***********
+###########
 
 .. toctree::
    :maxdepth: 1
+   :titlesonly:
 
    GradPak_API
 

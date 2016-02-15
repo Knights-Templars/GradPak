@@ -1,8 +1,9 @@
 #! /usr/bin/python
 
 """
+************
 GradPak_scat
-============
+************
 
 A quick and non-so-dirty scattered light correction designed for GradPak
 data. You'll need this because IRAF's scatter light routines cannot deal with
