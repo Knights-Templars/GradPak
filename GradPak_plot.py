@@ -191,6 +191,22 @@ def fill_fibers_with_bins(header, values):
 
     return newvalues
 
+def exclude_bins(header, exclude):
+
+    new_exclude = []
+    
+    for ap in exclude:
+        try:
+            fibers = header['BIN{:03}F'.format(ap)]
+        except KeyError:
+            print "WARNING: Tried to exclude ap {}, but this can't be done".format(int(ap))
+            continue
+            
+        for f in fibers.split():
+            new_exclude.append(int(f))
+
+    return new_exclude
+
 def get_bin_boxes(header, patches, pval):
     
     boxlist = []
@@ -212,7 +228,7 @@ def get_bin_boxes(header, patches, pval):
                 break
 
         if not exist_fib:
-            print 'Bin {} does have good data, skipping'.format(i+1)
+            print 'Bin {} was not found (excluded?), skipping'.format(i+1)
             continue
 
         # A special case becase 108 and 105 are out of order.
@@ -449,14 +465,15 @@ def prep_patches(values,
         refpatches = patches
     refcenter = refpatches[reffiber - 1,1].center # in px
     
+    if binheader is not None and plotbins is False:
+        values = fill_fibers_with_bins(binheader, values)
+        exclude = exclude_bins(binheader, exclude)
+
     if not sky and (binheader is None or plotbins is False):
         exclude = np.r_[skyidx,np.array(exclude)-1] #-1 needed because fiber
                                                     #numbers start at 1
     else:
         exclude = np.array(exclude) - 1
-
-    if binheader is not None and plotbins is False:
-        values = fill_fibers_with_bins(binheader, values)
 
     exclude = np.array(exclude)
     exclude = np.unique(exclude) #in case the user specified some sky fibers
