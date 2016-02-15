@@ -204,8 +204,17 @@ def get_bin_boxes(header, patches, pval):
         fiblist = fibers.split(' ')
         if len(fiblist) == 1: continue
 
-        idx1 = np.where(patches[:,0] == int(fiblist[0]))[0][0]
-        
+        exist_fib = False
+        for f in fiblist:
+            if int(f) in patches[:,0]:
+                exist_fib = True
+                idx1 = np.where(patches[:,0] == int(fiblist[0]))[0][0]
+                break
+
+        if not exist_fib:
+            print 'Bin {} does have good data, skipping'.format(i+1)
+            continue
+
         # A special case becase 108 and 105 are out of order.
         # 105 is on the edge and should therefore always be x2, y2
         if '105' in fiblist:
