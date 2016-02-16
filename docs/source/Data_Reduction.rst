@@ -214,5 +214,29 @@ to be correct for the next step, which is where you should go now.
 4. *Sky Subtraction*
 ====================
 
+Now that you have wavelength calibrate data and have resampled your spectra
+onto a common wavelength scale you can get rid of that pesky sky signal. To do
+so you will use :mod:`GradPak_skysub`. Torun it simply use ::
+
+ > python GradPak_skysub.py INPUT_FILE.ms_lin.fits [INPUT_FILE.ms_s_lin.fits]
+
+The syntax above is just a suggestion. You can call your outputfile whatever
+you want. If you choose to stick to the naming convention used throughout this
+document then :mod:`GradPak_skysub` will take a \*.ms_lin.fits file and
+automatically give it a \*.ms_s_lin.fits suffix.
+
+Using :mod:`GradPak_skysub` is identical to *HYDRA*'s **skysub** routine. In
+face, all :mod:`GradPak_skysub` does is run **skysub** five times; one for
+each fiber size.
+
+.. warning: For :mod:`GradPak_skysub` to work you *must* have run **dohydra**
+   with *apidtab=gradpak_sizes.iraf*
+
+For each fiber size you will be presented with an IRAF plot of the 4 sky
+fibers. In these plots you can delete specific fibers with the 'd' key (use
+'r' to redraw the plot after you do this). Once you are satisified with the
+selection of sky fibers hit 'q' to be taken to the next fiber size. Once all 5
+sizes are done the output file will be generated and you're done!
+
 5. Flux Calibration
 ===================
