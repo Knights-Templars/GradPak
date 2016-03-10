@@ -211,6 +211,99 @@ to be correct for the next step, which is where you should go now.
 3. Run **dohydra**
 ==================
 
+After all your hard work running :mod:`GradPak_flatfu` **dohydra** essentially
+becomes a wavelength solution tool. It is important when you run **dohydra**
+to not change any parameters except *objects* and *arcs1*. *Objects* will
+probably be a file containing all your science frames (objects, standard
+stars, etc.) and *arcs1* should be the combined arc lamp spectrum you made all
+the way back in step 1. You can set these using epar, but I like to just call
+them directly::
+
+  hydra> dohydra @pointings.lst arcs1=Comp.fits
+
+The first thing you will see is the spectrum of your arc lamp. I will probably
+be flipped in wavelenght (red on the left), but a quick 'w', 'f' will fix that
+problem. Your first task is to identify 4 or 5 emission lines that you know
+the wavelengths of. The NOAO Arc Line atlas is a good place to go if you are
+unsure, but hopefully you figured out a few when you were setting up the
+spectrograph. Place your cursor over the lines, hit the 'm' key to mark them
+and then enter the wavelegnth. Once you're done you should have something that
+looks like this.
+
+.. figure:: figs/dohydra1.png
+    :width: 642px
+    :align: center
+    :height: 500px
+    :alt: marking initial emission lines
+
+    Example of marking initial set of 4-5 arc emission lines. Make sure you
+    get these right.
+
+Now tell **dohydra** to fit a solution and refine it with more lines. The
+first part is achieved by pressing 'f' to enter **icfit**, IRAF's interactive
+curve fitter. At this point the RMS should be very low because you only have a
+few points, so you'll probably just hit 'q' to exit the curve fitter right
+away. 
+
+Now press 'l' to load in more lines from a line list. This is where the fun
+begins. You will now jump back and forth between fitting (with 'f') and
+managing lines. The RMS that indicates a "good" fit varies depending on the
+spectrograph setup, but in general you want to eliminate and low-order trends
+in your residuals. The figure below shows a pretty decent fit.
+
+.. figure:: figs/dohydra2.png
+    :width: 642px
+    :align: center
+    :height: 500px
+    :alt: a decent wavelength solution
+
+    A wavelength solution after fitting and grooming the arc lines.
+
+**THIS PART IS IMPORTANT** With the large fibers on GradPak it is very common
+to have some arc lines that are way oversaturated and it is imperitive that
+you remove these from your wavelength solution. Usually they will be obvious
+in the residual plot, but this shouldn't stop you from, at least once,
+manually looking at a zoom-in of every single line begin used in the
+fit. Another trick that GradPak plays is that the initial fit is done on the
+central fiber, which is 4''. It is likely that some lines that are close
+together but perfectly distinct with 4'' fibers are a gross blend in the 6''
+fibers. When you are marking and checking lines it is a good idea to look at
+the extracted 2D spectrum (.ms.fits file) and pay attention to which lines
+get blended in the large fibers.
+
+.. figure:: figs/arc_warning.png
+   :width: 667px
+   :height: 488px
+   :align: center
+   :alt: look out for lines that blend in larger fibers
+
+   An example of the perils of large fibers. The two marked arc lines would
+   appear to be great candidates for a wavelength solution in smaller fibers,
+   but they should be deleted from the fit because they will be very messy in
+   the largest fibers.
+
+Once you've got your fit all figured out hit 'q' until IRAF asks you if you
+want to fit the next aperture interactively. It is generally a good idea to
+review each fit at least once to make sure there are no blended lines messing
+with your solution. If there are certain lines that keep causing problems it
+might be worth it to start the whole process again (see note below). Once
+you're satisfied that your fit is legit for all apertures you can finish the
+**dohydra** run. Depending on how you've setup **dohydra** you might have to
+linearize your data separately. This is done with **dispcor** and is really
+easy::
+
+ hydra> dispcor @pointings.ms.lst @pointings.ms_lin.lst w1=WAVE1 w2=WAVE2 dw=CDELT1
+
+You don't have to specify the exact solution (w1, w1, and dw), but it can be
+nice to have all of your data from different nights on exactly the same
+wavelength grid.
+
+All done! You should now have a bunch of \*.ms_lin.fits files ready for sky
+subtraction and flux calibration.
+
+.. note:: If you want to start your wavelength solution from scratch simply
+          delete the "database/id*" files in your current directory.
+
 4. *Sky Subtraction*
 ====================
 
