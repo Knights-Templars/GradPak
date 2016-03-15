@@ -334,3 +334,83 @@ sizes are done the output file will be generated and you're done!
 
 5. Flux Calibration
 ===================
+
+At this point you're basically back on the standard multispec reduction path
+so I won't go into a ton of detail, but the main steps are outlined below. All
+of these IRAF tasks live in the *NOAO.ONEDSPEC* package.
+
+Airmass Correction
+------------------
+
+You'll need to know the atmospheric extinction to each of your
+frames. Fortunately the FITS headers have just about everything you
+need. **setairmass** does the rest::
+
+  onedspec> setairmass @airmass.lst
+
+Where airmass.lst is a list of all your standard stars and sky-subtracted
+object frames. There are now parameters worth mentioning.
+
+Standard Star Comparison
+------------------------
+
+This step takes your standard star spectra, bins them to equal the same
+resolution of the library spectrum, and then computes the difference between
+the two. There are a few important parameters:
+
+:extinct: This is a file that contains extinction information for KPNO. If you
+          did a good job with your standard star observations you'll be given
+          an opportunity to update this information, but the defualt file does
+          a pretty damn good job. The default is *onedstds$kpnoextinct.dat*
+
+:caldir: The location of the standard star reference library. Depending on
+         what stars you used you'll have a few options of libraries to
+         use. All live in the *onedstds* directory. On the UW Astro computers
+         this is */iraf/iraf/noao/lib/onedstds*. Look in the directories
+         within to find your star. IRAF has a description of where each
+         library comes from, but I think *onedstds$spec50cal* is probably the
+         best.
+
+:star_nam: Hopefully it is obvious why this parameter is important. Data for
+           this star must live in the directory specified above and must have
+           an entry in the *names.men* file in that directory.
+
+For each standard star observation you only have one fiber illuminated so
+you'll specify the aperture number why you call **standard**. Typically::
+
+ onedspec> standard BD284211_171_ot.ms_lin.fits std aperture=107 star_name=bd284211
+
+Sensitivity Function
+--------------------
+
+The IRAF task **sensfun** takes all your standard star observations and
+computes a wavelength and airmass dependent sensitivity response function for
+your instrument. The important gotchas are:
+
+:extinct: Set this to be exactly the same as in **standard**
+
+:newexti: If you've got enough data to compute an extinction correction the
+          new, corrected extinction will be written to this file.
+
+The other parameters can be set during fitting.
+
+In a basic sense using **sensfun** is like any interactive curve fitting in
+IRAF; change the order and func until you are happy that the residuals have as
+little structure as possible. The one extra thing you can do is try fitting an
+extinction correction. For this you need to have standard star observations
+taken over a large range of airmasses, but if you do just hit 'e' and do some
+more fitting. When you're done the program will tell you if your correction
+makes a significant difference to the sensitivity function fit. If you choose
+to save the new extinction data then it will be written to the file specified
+above.
+
+Calibration
+-----------
+
+This step is really easy. The one thing to watch out for is the setting for
+*extinct*. If you made a new extinction in the previous step set it to that,
+otherwise keep it as *onedstds$kpnoextinct.dat*. The rest is really easy::
+
+ onedspec> calibrate @airmass.lst @airmass_rf.lst
+
+That's it. You're all done!
