@@ -1,0 +1,494 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>GradPak_flatfu &mdash; GradPak 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GradPak 1.0 documentation" href="index.html" />
+    <link rel="next" title="GradPak_skysub" href="GradPak_skysub.html" />
+    <link rel="prev" title="Data Reduction" href="Data_Reduction.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="GradPak_skysub.html" title="GradPak_skysub"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Data_Reduction.html" title="Data Reduction"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-GradPak_flatfu"></span><div class="section" id="gradpak-flatfu">
+<h1>GradPak_flatfu<a class="headerlink" href="#gradpak-flatfu" title="Permalink to this headline">¶</a></h1>
+<p>This script combines up multiple flats so they can be used as a single input to dohydra. You will want to do this because an exposure that puts enough signal in the 200 micron fibers will push the larger fibers into the non-linear regime. The calling syntax is:</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt; python GradPak_flatfu.py Flat1 Flat2... Flatn pivot1 pivot2... pivotn-1
+</pre></div>
+</div>
+<p>Where the pivots define the aperture at which to cut the flat,
+inclusive. For example, if the call is:</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt; python GradPak_flatfu.py Flat1.fits Flat2.fits 70
+</pre></div>
+</div>
+<p>Then the resulting master flat will have apertures 1 - 70 from
+Flat1.fits and 71 - 109 from Flat2.fits.</p>
+<p>By default, Flat1 is the flat used for the aperture extraction of the entire run, but this can be changed with the <em>-t</em> flag (see below).</p>
+<p>All the flats are scaled by their exposure times and then cut up as specified by the user. The final, master flat lives only as a .ms multispec file. For this reason it is imperative that you set the &#8220;flat&#8221; parameter to EXACTLY &#8220;dFlat_master.fits&#8221;. Nothing else will work. Even when you do this dohydra will complain that it can&#8217;t find dFlat_master.fits. This warning is OK; dohydra will still do everything you want it to.</p>
+<div class="section" id="options">
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-t</span></kbd></td>
+<td>Use the next flat as the flat for tracing apertures. <strong>NOTE</strong> the resulting aperture definitions will be used for all of your data, so make sure it&#8217;s good.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-r <var>file</var></span></kbd></td>
+<td>Use the flat in <em>file</em> for fiber throughput determinations. Equivalent to <em>throughput=file</em> in <strong>dohydra</strong></td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-n<var>f</var></span></kbd></td>
+<td>Do NOT divide the final flat by its average spectrum. Normally this division is done so that the spectral signature of the flat lamps is not divided into the data frames, but if you want to keep that spectrum this option is for you. Similar to <em>fitflat-</em> in <strong>dohydra</strong>.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="useful-example">
+<h2>Useful Example<a class="headerlink" href="#useful-example" title="Permalink to this headline">¶</a></h2>
+<p>I have found that often the lower exposure flat fields produce better aperture traces (because the large fibers are not saturated), and that typically it is a good idea to pivot around fiber 43 so that the 2&#8217;&#8217; and 3&#8217;&#8217; fibers use one flat and the 4&#8217;&#8216;, 5&#8217;&#8216;, and 6&#8217;&#8217; use another. With this in mind I almost always type:</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt; python GradPak_flatfu.py dFlat_4s.fits -t dFlat_1s.fits 43
+</pre></div>
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="GradPak_flatfu.fit_flat">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">fit_flat</code><span class="sig-paren">(</span><em>mastername</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.fit_flat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove average spectra signature form multispec flat field</p>
+<p>This mimics the <em>fitflat</em> parameter in <strong>dohydra</strong>. The average spectrum is computed across all fibers and then divided into each fiber.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>mastername</strong> : str</p>
+<blockquote>
+<div><p>Name of the flat to fit</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">None :</p>
+<blockquote class="last">
+<div><p>The input image is overwritted with the spectrally normalized version of itself.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Because of the different fiber sizes it is very likely that there will be some systematic residual spectral signature in the master flat. This is OK because you&#8217;ll get rid of that during flux calibration.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.get_scrunch">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">get_scrunch</code><span class="sig-paren">(</span><em>flatname</em>, <em>msname</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.get_scrunch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take in two strings and return the difference between them, modulo the difference between .ms.fits and .fits.</p>
+<p>This is used to figure out what scrunching scheme IRAF used to name the aperture-extracted flats. This function exists because IRAF has different behavior when it comes to scrunching on different systems.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>flatname</strong> : str</p>
+<blockquote>
+<div><p>Name of the raw, un-extracted file</p>
+</div></blockquote>
+<p><strong>msname</strong> : str</p>
+<blockquote>
+<div><p>Name of the same file, after extraction by <strong>dohydra</strong></p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>scrunchstring</strong> : str</p>
+<blockquote class="last">
+<div><p>The scrunch string used by this systems&#8217;s IRAF</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.initial_run">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">initial_run</code><span class="sig-paren">(</span><em>scalednames</em>, <em>traceflat</em>, <em>throughput=''</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.initial_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use <strong>dohydra</strong> to extract .ms multispec files from the input flat fields.</p>
+<p>This is done so that we can stitch them back together in aperture space rather than pixel space. To save time we don&#8217;t bother with any sort of wavelength solution or other garbage. Essentially all we do is aperture extraction, but in a way that will enable future <strong>dohydra</strong> runs on actual data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>scalednames</strong> : list of str</p>
+<blockquote>
+<div><p>The names of flat images that have had shutter correction applied</p>
+</div></blockquote>
+<p><strong>traceflat</strong> : str</p>
+<blockquote>
+<div><p>Name of the flat to be used for tracing apertures</p>
+</div></blockquote>
+<p><strong>throughput</strong> : str, optional</p>
+<blockquote>
+<div><p>Name of the image to use for throughput correction</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>outputnames</strong> : list of str</p>
+<blockquote>
+<div><p>The names of the extracted flat field multispec images</p>
+</div></blockquote>
+<p><strong>outputscales</strong> : list of float</p>
+<blockquote class="last">
+<div><p>List of scaling applied to each flat by <strong>dohydra</strong>. This is returned so that it can be undone later.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p><strong>dohydra</strong> automatically scales each extracted flat so that the mean is 1. This messes up our careful shutter correction/scaling so we need to keep track of these scales for future use.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.main">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the user inputs, check that there are the right number of pivot points, and run through the script.</p>
+<p>The steps are:</p>
+<ol class="arabic simple">
+<li>Make dummy ffTmp.fits file</li>
+<li>Extract input flats using <strong>dohydra</strong></li>
+<li>Undo the <strong>dohydra</strong> normalization</li>
+<li>Perform shutter correction</li>
+<li>Stitch flats together</li>
+<li>Optionally remove average spectral signature</li>
+<li>Normalize master flat to mean flux of 1</li>
+<li>Set external <strong>dohydra</strong> parameters so the user can call it from IRAF directly</li>
+</ol>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.make_tmp">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">make_tmp</code><span class="sig-paren">(</span><em>hdu</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.make_tmp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the dummy spectrum to be reduced by <strong>dohydra</strong>.</p>
+<p>This spectrum is passed as the &#8216;object&#8217; spectrum to <strong>dohydra</strong> and only exists to allow the routine to run properly. It is set to all ones so that the affect of the flat scaling can be seen.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hdu</strong> : pyfits.PrimaryHDU object</p>
+<blockquote>
+<div><p>HDU that is characteristic of the flats and data used during reduction. This header will be copied to the temporary file and the object changed to &#8216;FlatFu tmp&#8217;.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">None</p>
+<blockquote class="last">
+<div><p>The result is &#8216;ffTmp.fits&#8217;, which will passed as the object to internal <strong>dohydra</strong> runs.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.mean_scale">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">mean_scale</code><span class="sig-paren">(</span><em>mslist</em>, <em>scalelist</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.mean_scale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take in a list of fits file names and scale each file by the corresponding value in the scalelist.</p>
+<p>When constructing the aperture-extracted flat that will be applied to all data apertures IRAF&#8217;s last step is to normalize the entire multispec file to a unity mean. Because we will be stitching together a few different flats we need to undo this scaling so the relative strengths of the individual flats is maintained. This assumes that these flats were already properly scaled (see :meth:GradPak_flatfu.shutter_correction).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>mslist</strong> : list of str</p>
+<blockquote>
+<div><p>Names of files to have <strong>dohydra</strong> scaling removed</p>
+</div></blockquote>
+<p><strong>scalelist</strong> : list of float</p>
+<blockquote>
+<div><p>Scales applied to flats by <strong>dohydra</strong></p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">None :</p>
+<blockquote class="last">
+<div><p>The input files are overwritted with <strong>dohydra</strong>&#8216;s scaling removed</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.normalize">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">normalize</code><span class="sig-paren">(</span><em>mastername</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize a fits file so the mean over all pixels is 1.</p>
+<p>This function exists to keep reduction as close as possible to IRAF&#8217;s own routines. In msresp1d the last step is to normalize the flat so the mean is one. In :meth:GradPak_flatfu.mean_scale we undid this scaling so that the flats could be stitched together. This function recomputes this normalization to the stitched together flat.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>mastername</strong> : str</p>
+<blockquote>
+<div><p>Name of the flat to be normalized</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>None</strong> : None</p>
+<blockquote class="last">
+<div><p>The input file is overwritten with a version of itself with total flux = 1</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.parse_input">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">parse_input</code><span class="sig-paren">(</span><em>inputlist</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.parse_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse arguments given to this module by the shell into useful function arguments and options</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>inputlist</strong> : list of str</p>
+<blockquote>
+<div><p>Probably sys.argv</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>flat_list</strong> : list of str</p>
+<blockquote>
+<div><p>Names of flats to be stitched together</p>
+</div></blockquote>
+<p><strong>pivot_list</strong> : list of int</p>
+<blockquote>
+<div><p>Pivot points about which to stitch the flats</p>
+</div></blockquote>
+<p><strong>traceflat</strong> : str</p>
+<blockquote>
+<div><p>Flat used for aperture extraction</p>
+</div></blockquote>
+<p><strong>throughput</strong> : st</p>
+<blockquote>
+<div><p>Flat used for throughput correction. Can be an empty string (no special throughput file is used).</p>
+</div></blockquote>
+<p><strong>fitflat</strong> : bool</p>
+<blockquote class="last">
+<div><p>If True, fit out the average spectrum from the final flat</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.print_help">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">print_help</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.print_help" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print usage help.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.scale_images">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">scale_images</code><span class="sig-paren">(</span><em>hdulist</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.scale_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take in a list of fits HDUS and scale the data in all of them to the exposure time of the first HDU</p>
+<p>I think this function is no longer used, so I won&#8217;t document it.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.scale_spectra">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">scale_spectra</code><span class="sig-paren">(</span><em>imagelist</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.scale_spectra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scale spectra based on an overlapping group of fibers.</p>
+<p>I think this function is no longer used, so I won&#8217;t document it.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.setup_files">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">setup_files</code><span class="sig-paren">(</span><em>flatlist</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.setup_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare flats for dohydra run</p>
+<p>Take in a list of names of flat fields, scale the data by exposure
+time, and then write them out to appropriatly named files.
+Also create a dummy spectrum that will be &#8220;reduced&#8221; by dohydra.</p>
+<p>This function might not be used anymore.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.shutter_correction">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">shutter_correction</code><span class="sig-paren">(</span><em>imagelist</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.shutter_correction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply a correction to account for spectral signatures caused by lagging shutter.</p>
+<p>The WIYN bench has linear shutter that has asymmetric opening and closing times. At exposure times less than ~7 seconds this asymmetry can introduce an artificial spectral signature at the few % level. Furthermore, the magnitude of this artificial spectrum varies with exposure time. This becomes a problem when trying to stitch together two flats taken at short, but not equal exposure times; each flat will have a different &#8220;shutter spectrum&#8221;.</p>
+<p>To account for this we look at a set of fibers expected to have good signal in both flats and use them to normalize both the spectral shapes and total flux to a common value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>imagelist</strong> : list of str</p>
+<blockquote>
+<div><p>The names of IRAF multispec files to perform the correction on</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>outputnames</strong> : list of str</p>
+<blockquote class="last">
+<div><p>The main result is to create and write new files with the shutter correction applied. These are giving the suffix &#8220;_shut.ms.fits&#8221; and their names are returned in a list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The current default is to use the 3&#8217;&#8217; fibers as the overlapping set of fibers on which to base the correction. This might not be always true for all GradPak usage cases. Watch out.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_flatfu.stitch_flats">
+<code class="descclassname">GradPak_flatfu.</code><code class="descname">stitch_flats</code><span class="sig-paren">(</span><em>outputnames</em>, <em>pivots</em>, <em>outstring</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_flatfu.stitch_flats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a list of multispec files and a list of pivots and stitch together a master flat.</p>
+<p>The pivot values are inclusive, so if pivots = [72] then the master flat will contain fibers 1 - 72 from flat #1 and 73 - 109 from flat #2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>outputnames</strong> : list of str</p>
+<blockquote>
+<div><p>Names of the multispec files to stitch together</p>
+</div></blockquote>
+<p><strong>pivots</strong> : list of int</p>
+<blockquote>
+<div><p>The fibers that form the borders of the stitch. If outputnames is length N, pivots must be length N - 1</p>
+</div></blockquote>
+<p><strong>outstring</strong> : str</p>
+<blockquote>
+<div><p>The special, IRAF scrunch string used to identify intermediate files associated with a <strong>dohydra</strong> run</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mastername</strong> : str</p>
+<blockquote class="last">
+<div><p>The name of the stitched master multispec flat</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The specifics of outstring depend on system and IRAF distribution. See <a class="reference internal" href="#GradPak_flatfu.get_scrunch" title="GradPak_flatfu.get_scrunch"><code class="xref py py-meth docutils literal"><span class="pre">GradPak_flatfu.get_scrunch()</span></code></a></p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">GradPak_flatfu</a><ul>
+<li><a class="reference internal" href="#options">Options</a></li>
+<li><a class="reference internal" href="#useful-example">Useful Example</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Data_Reduction.html"
+                        title="previous chapter">Data Reduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="GradPak_skysub.html"
+                        title="next chapter">GradPak_skysub</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/GradPak_flatfu.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="GradPak_skysub.html" title="GradPak_skysub"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Data_Reduction.html" title="Data Reduction"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Arthur Eigenbrot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4a0+.
+    </div>
+  </body>
+</html>

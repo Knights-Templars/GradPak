@@ -1,0 +1,519 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Data Reduction &mdash; GradPak 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GradPak 1.0 documentation" href="index.html" />
+    <link rel="next" title="GradPak_flatfu" href="GradPak_flatfu.html" />
+    <link rel="prev" title="Data Acquisition" href="Data_Acquisition.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="GradPak_flatfu.html" title="GradPak_flatfu"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Data_Acquisition.html" title="Data Acquisition"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="data-reduction">
+<h1>Data Reduction<a class="headerlink" href="#data-reduction" title="Permalink to this headline">¶</a></h1>
+<p>The best way to reduce GradPak data is with IRAF and the <strong>dohydra</strong>
+package. If you are unfamiliar with the basics of IRAF or the general order
+IFU reductions with <strong>dohydra</strong> take solace in the fact that failure often
+leads to deeper understanding and forge ahead.</p>
+<p>From a high-level viewpoint reducing GradPak data is no different than
+reducing any other IFU data, be it any of WIYN&#8217;s *Paks, Hydra, PPak,
+etc. etc. However, the unique, multi-pitch nature of GradPak introduces some
+interesting and frustrating complications that require special mention. In
+this guide I will breeze through aspects of reduction that are common to all
+IFUs and focus on the specificities of GradPak reductions.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Many of the concepts and steps mentioned below, while common to any
+IFU reduction, are taken from the Disk Mass Survey&#8217;s SparsePak
+reduction recipe (link soon). I highly recommend you read this
+document at some point.</p>
+</div>
+<p>Below are the steps needed to go from raw frames from the bench to
+flux-calibrated spectra ready for analysis. Steps in <em>italics</em> are
+cruicially different for GradPak than any other IFU.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Completing all the steps below will require the IRAF prompt as well
+as whatever Linux shell you use. I will use &#8216;[packagename]&gt; &#8216; to
+denote IRAF commands and &#8216;#&gt; &#8216; to denote shell commands.</p>
+</div>
+<div class="section" id="basic-reductions">
+<h2>1. Basic Reductions<a class="headerlink" href="#basic-reductions" title="Permalink to this headline">¶</a></h2>
+<p>The first step is to prep your raw frames for <strong>dohydra</strong> this involves using
+<strong>ccdproc</strong> to trim the images and do overscan, zero, and dark
+corrections. You should also combine your flats (of the same exposure time)
+and arc images to beat down the noise. At the end of this step you should have:</p>
+<ul class="simple">
+<li>A single arc-lamp frame</li>
+<li>A single dome flat frame for each exposure time taken</li>
+<li>All of your program frames (object, standard stars, etc.) that have been
+trimmed, overscan corrected, and zero and dark subtracted.</li>
+</ul>
+</div>
+<div class="section" id="prepare-master-flat">
+<h2>2. <em>Prepare Master Flat</em><a class="headerlink" href="#prepare-master-flat" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="options">
+<h3>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h3>
+<p>If you took flats at multiple exposures to get good signal across all fiber
+sizes then this step is cruicial. If not, skip ahead to the next step.</p>
+<p>This step will combine your multiple flats together into a single &#8216;master&#8217;
+flat that can be used by <strong>dohydra</strong> to apply flat-field corrections to your
+data. To do this we use <a class="reference internal" href="GradPak_flatfu.html#module-GradPak_flatfu" title="GradPak_flatfu"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_flatfu</span></code></a>, which is pretty fancy.</p>
+<p>See <a class="reference internal" href="GradPak_flatfu.html#module-GradPak_flatfu" title="GradPak_flatfu"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_flatfu</span></code></a> for a detailed discussion of the method and options
+available; the typical usage looks a lot like:</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt; python GradPak_flatfu.py dFlat_4s.fits -t dFlat_1s.fits 43
+</pre></div>
+</div>
+<p>This example illustrates some important descisions you will have to make based
+on a careful examination of your data. The first is where you want the pivot
+point to be. In the above example I chose fiber 43 so that the 2&#8217;&#8217; and 3&#8217;&#8217;
+fibers (1 - 43) will be taken from dFlat_4s.fits and the 4&#8217;&#8216;, 5&#8217;&#8216;, and 6&#8217;&#8217;
+fibers (44 - 109) are taken from dFlat_1s.fits. This makes sense because in my
+spectrograph setup the 4&#8217;&#8217; fibers are in the non-linear regime (don&#8217;t even ask
+about the 5&#8217;&#8217; and 6&#8217;&#8217; fibers!) with a 4s dome flat exposure while the 2&#8217;&#8217; and
+3&#8217;&#8217; fibers have dangerously low signal with a 1s exposure. This might not be
+true for your data so make sure you choose a pivot point that works for you. I
+cannot recommend pivoting around a fiber that is not at the border of two
+fiber sizes.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is perfectly OK to have more than 2 different flat exposures (and
+more than one pivot point). See <a class="reference internal" href="GradPak_flatfu.html#module-GradPak_flatfu" title="GradPak_flatfu"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_flatfu</span></code></a> for more
+information</p>
+</div>
+<p>The next thing you need to decide is which flat to use for doing the aperture
+traces. Make sure it&#8217;s a good one because the resulting traces will be used
+for <em>all</em> of your data (as they should be). By default, <em>GradPak_flatfu</em> will
+use the first flat as the trace flat, but this is often non-ideal. In the
+above example I used the <em>-t</em> flag to force <em>GradPak_flatfu</em> to use
+dFlat_1s.fits as the trace flat. In my case I first tested the traces of each
+flat and found that the 1s exposure flat produced trace fits that were cleaner
+than the 4s flat, most likely due to the wonky shape of super-saturated larger
+fibers. I highly recommend you do similar tests and decide for yourself which
+flat produces better traces.</p>
+<p>Next, you have the option of specifying a <em>throughput</em> image that is used to
+make fiber-to-fiber corrections after extraction. Basically what IRAF does is
+extract the throughput image, sum each fiber along the dispersion axis, and
+apply a correction to normalize these sums. I strongly recommend <strong>NOT</strong>
+applying this correction because:</p>
+<ol class="arabic simple">
+<li>Because of the multiple fiber sizes in GradPak this will, in principle,
+take your measured surface brightnesses and turn them into total intensity,
+which might confuse you later when you wonder why some fibers are way
+brighter than others.</li>
+<li>IRAF doesn&#8217;t even do step 1. right. Because of some rigidity in the way
+aperture traces are computed there will not be the simple (2:3:4:5:6)^2
+ratio in brightness you might expect from the fiber sizes.</li>
+<li>Any variation in the throughputs of the fibers should already be captured
+and corrected by the dome flats. GradPak is small enough on the sky the the
+WIYN flat lamps should do a pretty darn good job approximating uniform
+illumination. Are you <em>sure</em> you want to use a throughput image?</li>
+</ol>
+<p>All that said, if you <em>really</em> want to use a throughput image just precede it
+with the <em>-r</em> option.</p>
+<p>Finally, you have a choice to remove the average flat spectrum from the master
+flat. This option is on by default. If selected each spectral channel of the
+master flat is divided by the average of that channel over all fibers. Because
+GradPak has multiple fiber sizes this step will not completely eliminate the
+spectral signature of the flat lamps, but it will greatly decrease it. At the
+end of the day this option is largely a matter of preference because flux
+calibration will remove the average flat spectrum anyway. If you want to keep
+the average flat spectrum for whatever reason you can turn off this option
+with the <em>-nf</em> option.</p>
+</div>
+<div class="section" id="setting-up-dohydra-parameters">
+<h3>Setting up <strong>dohydra</strong> parameters<a class="headerlink" href="#setting-up-dohydra-parameters" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="GradPak_flatfu.html#module-GradPak_flatfu" title="GradPak_flatfu"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_flatfu</span></code></a> uses the <em>HYDRA</em> package extensively and is highly
+dependent on the parameters you set for <em>HYDRA</em> and <strong>dohydra</strong> in IRAF. To
+access the global <em>HYDRA</em> parameters make sure you&#8217;ve loaded the <em>HYDRA</em>
+package and type:</p>
+<div class="highlight-python"><div class="highlight"><pre>hydra&gt; epar params
+</pre></div>
+</div>
+<p>Many of these can be left as the default, but pay special attention to the
+TRACE PARAMETERS and ARC DISPERSION FUNCTION PARAMETERS. You can change these
+interactively as you fit, but after a few iterations you can save yourself
+some keystrokes by setting the defaults here. More important are the
+<strong>dohydra</strong> parameters:</p>
+<div class="highlight-python"><div class="highlight"><pre>hydra&gt; epar dohydra
+</pre></div>
+</div>
+<p>Leave the first section blank for now (it will be filled in by
+<a class="reference internal" href="GradPak_flatfu.html#module-GradPak_flatfu" title="GradPak_flatfu"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_flatfu</span></code></a>). Make sure your readnoise and gain are correct (this
+info is in the FITS header). <em>Fibers</em> should be 109 and make sure <em>apidtab =
+gradpak_sizes.iraf</em> (this is crucial for proper sky subtraction).</p>
+<p>The <em>width</em> parameter is very important for aperture extraction. Before you
+set this open up one of your flat images (preferably the one that will be
+traced) with <strong>implot</strong> or <strong>imexam</strong> and measure the width of the 6&#8217;&#8217; fibers
+(along the spatial dimension). These fibers probably won&#8217;t have gaussian
+profiles, but use the FWHM provided and your best judgement to determine an
+appropriate <em>width</em> value.</p>
+<p>The rest of the parameters are not relevant for this step and will be covered
+in below.</p>
+</div>
+<div class="section" id="running-gradpak-flatfu">
+<h3>Running <a class="reference internal" href="GradPak_flatfu.html#module-GradPak_flatfu" title="GradPak_flatfu"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_flatfu</span></code></a><a class="headerlink" href="#running-gradpak-flatfu" title="Permalink to this headline">¶</a></h3>
+<p>From a user perspective, running <a class="reference internal" href="GradPak_flatfu.html#module-GradPak_flatfu" title="GradPak_flatfu"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_flatfu</span></code></a> is identical to using
+the aperture identification and extraction parameters in the <em>HYDRA</em>
+package. The first step is to identify all 109 GradPak apertures. I have never
+had to adjust the aperture locations presented by IRAF, so if you find
+yourself doing this you probably have some parameters set to wonky
+values. Make sure you get all the way to 109 on the right side and that the
+visible, but obviously broken fiber falls between 58 and 59.</p>
+<div class="figure align-center" id="id1">
+<a class="reference internal image-reference" href="_images/apid.png"><img alt="aperture identificiation" src="_images/apid.png" style="width: 642px; height: 500px;" /></a>
+<p class="caption"><span class="caption-text">Example of aperture identification. Your plot should not look very different from this.</span></p>
+</div>
+<p>The next step is to fit the aperture traces. I was fortunate enough to have a
+spectragraph setup that made this process a real pain in the ass, but maybe it
+will be really easy for you. The end goal is to give each aperture a trace
+that fits the data reasonably well. For me this meant going through all 109
+apertures and adjusting the fit parameters manually to get good fits and
+consistent end behavior. That last point is an important one; if you have low
+signal at one end of your spectrum (probably the blue) you might find that the
+same fit parameters cause one aperture to swing wildly up at this end while
+the next aperture swingly wildly down. This doesn&#8217;t really make physical sense
+and should be avoided.</p>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="_images/trace.png"><img alt="example aperture trace" src="_images/trace.png" style="width: 642px; height: 500px;" /></a>
+<p class="caption"><span class="caption-text">Example of fitting an aperture trace. Note the high order fit. I often
+have to change the fit order considerably from aperture to aperture.</span></p>
+</div>
+<p>Even if you get lucky and can fit all your apertures well with the same fit
+parameters I highly recommend monitoring the fits of all apertures at least
+once before you push that big &#8216;NO&#8217; button.</p>
+<p>Once all the aperture tracing is done you&#8217;ll see a few messages about
+normalization and shutter correction and then the program will exit. Upon
+completion <a class="reference internal" href="GradPak_flatfu.html#module-GradPak_flatfu" title="GradPak_flatfu"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_flatfu</span></code></a> also sets all of your <strong>dohydra</strong> parameters
+to be correct for the next step, which is where you should go now.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="GradPak_flatfu.html#module-GradPak_flatfu" title="GradPak_flatfu"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_flatfu</span></code></a> uses the same database as IRAF for storing
+aperture traces, wavelength solutions, etc. This defaults to a
+folder called &#8220;database&#8221; in the current directory. This means if you
+mess up some aperture traces you&#8217;ll have to delete the
+&#8220;database/ap*&#8221; file to start again. That said, if you just need to
+rerun <a class="reference internal" href="GradPak_flatfu.html#module-GradPak_flatfu" title="GradPak_flatfu"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_flatfu</span></code></a> for any reason (different basic
+reductions or something) then you can totally skip the aperture
+fitting step if the database still exists. Very nice.</p>
+</div>
+</div>
+</div>
+<div class="section" id="run-dohydra">
+<h2>3. Run <strong>dohydra</strong><a class="headerlink" href="#run-dohydra" title="Permalink to this headline">¶</a></h2>
+<p>After all your hard work running <a class="reference internal" href="GradPak_flatfu.html#module-GradPak_flatfu" title="GradPak_flatfu"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_flatfu</span></code></a> <strong>dohydra</strong> essentially
+becomes a wavelength solution tool. It is important when you run <strong>dohydra</strong>
+to not change any parameters except <em>objects</em> and <em>arcs1</em>. <em>Objects</em> will
+probably be a file containing all your science frames (objects, standard
+stars, etc.) and <em>arcs1</em> should be the combined arc lamp spectrum you made all
+the way back in step 1. You can set these using epar, but I like to just call
+them directly:</p>
+<div class="highlight-python"><div class="highlight"><pre>hydra&gt; dohydra @pointings.lst arcs1=Comp.fits
+</pre></div>
+</div>
+<p>The first thing you will see is the spectrum of your arc lamp. I will probably
+be flipped in wavelenght (red on the left), but a quick &#8216;w&#8217;, &#8216;f&#8217; will fix that
+problem. Your first task is to identify 4 or 5 emission lines that you know
+the wavelengths of. The NOAO Arc Line atlas is a good place to go if you are
+unsure, but hopefully you figured out a few when you were setting up the
+spectrograph. Place your cursor over the lines, hit the &#8216;m&#8217; key to mark them
+and then enter the wavelegnth. Once you&#8217;re done you should have something that
+looks like this.</p>
+<div class="figure align-center" id="id3">
+<a class="reference internal image-reference" href="_images/dohydra1.png"><img alt="marking initial emission lines" src="_images/dohydra1.png" style="width: 642px; height: 500px;" /></a>
+<p class="caption"><span class="caption-text">Example of marking initial set of 4-5 arc emission lines. Make sure you
+get these right.</span></p>
+</div>
+<p>Now tell <strong>dohydra</strong> to fit a solution and refine it with more lines. The
+first part is achieved by pressing &#8216;f&#8217; to enter <strong>icfit</strong>, IRAF&#8217;s interactive
+curve fitter. At this point the RMS should be very low because you only have a
+few points, so you&#8217;ll probably just hit &#8216;q&#8217; to exit the curve fitter right
+away.</p>
+<p>Now press &#8216;l&#8217; to load in more lines from a line list. This is where the fun
+begins. You will now jump back and forth between fitting (with &#8216;f&#8217;) and
+managing lines. The RMS that indicates a &#8220;good&#8221; fit varies depending on the
+spectrograph setup, but in general you want to eliminate and low-order trends
+in your residuals. The figure below shows a pretty decent fit.</p>
+<div class="figure align-center" id="id4">
+<a class="reference internal image-reference" href="_images/dohydra2.png"><img alt="a decent wavelength solution" src="_images/dohydra2.png" style="width: 642px; height: 500px;" /></a>
+<p class="caption"><span class="caption-text">A wavelength solution after fitting and grooming the arc lines.</span></p>
+</div>
+<p><strong>THIS PART IS IMPORTANT</strong> With the large fibers on GradPak it is very common
+to have some arc lines that are way oversaturated and it is imperitive that
+you remove these from your wavelength solution. Usually they will be obvious
+in the residual plot, but this shouldn&#8217;t stop you from, at least once,
+manually looking at a zoom-in of every single line begin used in the
+fit. Another trick that GradPak plays is that the initial fit is done on the
+central fiber, which is 4&#8217;&#8216;. It is likely that some lines that are close
+together but perfectly distinct with 4&#8217;&#8217; fibers are a gross blend in the 6&#8217;&#8217;
+fibers. When you are marking and checking lines it is a good idea to look at
+the extracted 2D spectrum (.ms.fits file) and pay attention to which lines
+get blended in the large fibers.</p>
+<div class="figure align-center" id="id5">
+<a class="reference internal image-reference" href="_images/arc_warning.png"><img alt="look out for lines that blend in larger fibers" src="_images/arc_warning.png" style="width: 667px; height: 488px;" /></a>
+<p class="caption"><span class="caption-text">An example of the perils of large fibers. The two marked arc lines would
+appear to be great candidates for a wavelength solution in smaller fibers,
+but they should be deleted from the fit because they will be very messy in
+the largest fibers.</span></p>
+</div>
+<p>Once you&#8217;ve got your fit all figured out hit &#8216;q&#8217; until IRAF asks you if you
+want to fit the next aperture interactively. It is generally a good idea to
+review each fit at least once to make sure there are no blended lines messing
+with your solution. If there are certain lines that keep causing problems it
+might be worth it to start the whole process again (see note below). Once
+you&#8217;re satisfied that your fit is legit for all apertures you can finish the
+<strong>dohydra</strong> run. Depending on how you&#8217;ve setup <strong>dohydra</strong> you might have to
+linearize your data separately. This is done with <strong>dispcor</strong> and is really
+easy:</p>
+<div class="highlight-python"><div class="highlight"><pre>hydra&gt; dispcor @pointings.ms.lst @pointings.ms_lin.lst w1=WAVE1 w2=WAVE2 dw=CDELT1
+</pre></div>
+</div>
+<p>You don&#8217;t have to specify the exact solution (w1, w1, and dw), but it can be
+nice to have all of your data from different nights on exactly the same
+wavelength grid.</p>
+<p>All done! You should now have a bunch of *.ms_lin.fits files ready for sky
+subtraction and flux calibration.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want to start your wavelength solution from scratch simply
+delete the &#8220;database/id*&#8221; files in your current directory.</p>
+</div>
+</div>
+<div class="section" id="sky-subtraction">
+<h2>4. <em>Sky Subtraction</em><a class="headerlink" href="#sky-subtraction" title="Permalink to this headline">¶</a></h2>
+<p>Now that you have wavelength calibrate data and have resampled your spectra
+onto a common wavelength scale you can get rid of that pesky sky signal. To do
+so you will use <a class="reference internal" href="GradPak_skysub.html#module-GradPak_skysub" title="GradPak_skysub"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_skysub</span></code></a>. Torun it simply use</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt; python GradPak_skysub.py INPUT_FILE.ms_lin.fits [INPUT_FILE.ms_s_lin.fits]
+</pre></div>
+</div>
+<p>The syntax above is just a suggestion. You can call your outputfile whatever
+you want. If you choose to stick to the naming convention used throughout this
+document then <a class="reference internal" href="GradPak_skysub.html#module-GradPak_skysub" title="GradPak_skysub"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_skysub</span></code></a> will take a *.ms_lin.fits file and
+automatically give it a *.ms_s_lin.fits suffix.</p>
+<p>Using <a class="reference internal" href="GradPak_skysub.html#module-GradPak_skysub" title="GradPak_skysub"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_skysub</span></code></a> is identical to <em>HYDRA</em>&#8216;s <strong>skysub</strong> routine. In
+face, all <a class="reference internal" href="GradPak_skysub.html#module-GradPak_skysub" title="GradPak_skysub"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_skysub</span></code></a> does is run <strong>skysub</strong> five times; one for
+each fiber size.</p>
+<p>For each fiber size you will be presented with an IRAF plot of the 4 sky
+fibers. In these plots you can delete specific fibers with the &#8216;d&#8217; key (use
+&#8216;r&#8217; to redraw the plot after you do this). Once you are satisified with the
+selection of sky fibers hit &#8216;q&#8217; to be taken to the next fiber size. Once all 5
+sizes are done the output file will be generated and you&#8217;re done!</p>
+</div>
+<div class="section" id="flux-calibration">
+<h2>5. Flux Calibration<a class="headerlink" href="#flux-calibration" title="Permalink to this headline">¶</a></h2>
+<p>At this point you&#8217;re basically back on the standard multispec reduction path
+so I won&#8217;t go into a ton of detail, but the main steps are outlined below. All
+of these IRAF tasks live in the <em>NOAO.ONEDSPEC</em> package.</p>
+<div class="section" id="airmass-correction">
+<h3>Airmass Correction<a class="headerlink" href="#airmass-correction" title="Permalink to this headline">¶</a></h3>
+<p>You&#8217;ll need to know the atmospheric extinction to each of your
+frames. Fortunately the FITS headers have just about everything you
+need. <strong>setairmass</strong> does the rest:</p>
+<div class="highlight-python"><div class="highlight"><pre>onedspec&gt; setairmass @airmass.lst
+</pre></div>
+</div>
+<p>Where airmass.lst is a list of all your standard stars and sky-subtracted
+object frames. There are now parameters worth mentioning.</p>
+</div>
+<div class="section" id="standard-star-comparison">
+<h3>Standard Star Comparison<a class="headerlink" href="#standard-star-comparison" title="Permalink to this headline">¶</a></h3>
+<p>This step takes your standard star spectra, bins them to equal the same
+resolution of the library spectrum, and then computes the difference between
+the two. There are a few important parameters:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">extinct:</th><td class="field-body">This is a file that contains extinction information for KPNO. If you
+did a good job with your standard star observations you&#8217;ll be given
+an opportunity to update this information, but the defualt file does
+a pretty damn good job. The default is <em>onedstds$kpnoextinct.dat</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">caldir:</th><td class="field-body">The location of the standard star reference library. Depending on
+what stars you used you&#8217;ll have a few options of libraries to
+use. All live in the <em>onedstds</em> directory. On the UW Astro computers
+this is <em>/iraf/iraf/noao/lib/onedstds</em>. Look in the directories
+within to find your star. IRAF has a description of where each
+library comes from, but I think <em>onedstds$spec50cal</em> is probably the
+best.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">star_nam:</th><td class="field-body">Hopefully it is obvious why this parameter is important. Data for
+this star must live in the directory specified above and must have
+an entry in the <em>names.men</em> file in that directory.</td>
+</tr>
+</tbody>
+</table>
+<p>For each standard star observation you only have one fiber illuminated so
+you&#8217;ll specify the aperture number why you call <strong>standard</strong>. Typically:</p>
+<div class="highlight-python"><div class="highlight"><pre>onedspec&gt; standard BD284211_171_ot.ms_lin.fits std aperture=107 star_name=bd284211
+</pre></div>
+</div>
+</div>
+<div class="section" id="sensitivity-function">
+<h3>Sensitivity Function<a class="headerlink" href="#sensitivity-function" title="Permalink to this headline">¶</a></h3>
+<p>The IRAF task <strong>sensfun</strong> takes all your standard star observations and
+computes a wavelength and airmass dependent sensitivity response function for
+your instrument. The important gotchas are:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">extinct:</th><td class="field-body">Set this to be exactly the same as in <strong>standard</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">newexti:</th><td class="field-body">If you&#8217;ve got enough data to compute an extinction correction the
+new, corrected extinction will be written to this file.</td>
+</tr>
+</tbody>
+</table>
+<p>The other parameters can be set during fitting.</p>
+<p>In a basic sense using <strong>sensfun</strong> is like any interactive curve fitting in
+IRAF; change the order and func until you are happy that the residuals have as
+little structure as possible. The one extra thing you can do is try fitting an
+extinction correction. For this you need to have standard star observations
+taken over a large range of airmasses, but if you do just hit &#8216;e&#8217; and do some
+more fitting. When you&#8217;re done the program will tell you if your correction
+makes a significant difference to the sensitivity function fit. If you choose
+to save the new extinction data then it will be written to the file specified
+above.</p>
+</div>
+<div class="section" id="calibration">
+<h3>Calibration<a class="headerlink" href="#calibration" title="Permalink to this headline">¶</a></h3>
+<p>This step is really easy. The one thing to watch out for is the setting for
+<em>extinct</em>. If you made a new extinction in the previous step set it to that,
+otherwise keep it as <em>onedstds$kpnoextinct.dat</em>. The rest is really easy:</p>
+<div class="highlight-python"><div class="highlight"><pre>onedspec&gt; calibrate @airmass.lst @airmass_rf.lst
+</pre></div>
+</div>
+<p>That&#8217;s it. You&#8217;re all done!</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Data Reduction</a><ul>
+<li><a class="reference internal" href="#basic-reductions">1. Basic Reductions</a></li>
+<li><a class="reference internal" href="#prepare-master-flat">2. <em>Prepare Master Flat</em></a><ul>
+<li><a class="reference internal" href="#options">Options</a></li>
+<li><a class="reference internal" href="#setting-up-dohydra-parameters">Setting up <strong>dohydra</strong> parameters</a></li>
+<li><a class="reference internal" href="#running-gradpak-flatfu">Running <code class="docutils literal"><span class="pre">GradPak_flatfu</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#run-dohydra">3. Run <strong>dohydra</strong></a></li>
+<li><a class="reference internal" href="#sky-subtraction">4. <em>Sky Subtraction</em></a></li>
+<li><a class="reference internal" href="#flux-calibration">5. Flux Calibration</a><ul>
+<li><a class="reference internal" href="#airmass-correction">Airmass Correction</a></li>
+<li><a class="reference internal" href="#standard-star-comparison">Standard Star Comparison</a></li>
+<li><a class="reference internal" href="#sensitivity-function">Sensitivity Function</a></li>
+<li><a class="reference internal" href="#calibration">Calibration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Data_Acquisition.html"
+                        title="previous chapter">Data Acquisition</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="GradPak_flatfu.html"
+                        title="next chapter">GradPak_flatfu</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Data_Reduction.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="GradPak_flatfu.html" title="GradPak_flatfu"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Data_Acquisition.html" title="Data Acquisition"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Arthur Eigenbrot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4a0+.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>GradPak_scat &mdash; GradPak 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GradPak 1.0 documentation" href="index.html" />
+    <link rel="prev" title="GradPak_skysub" href="GradPak_skysub.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="GradPak_skysub.html" title="GradPak_skysub"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-GradPak_scat"></span><div class="section" id="gradpak-scat">
+<h1>GradPak_scat<a class="headerlink" href="#gradpak-scat" title="Permalink to this headline">¶</a></h1>
+<p>A quick and non-so-dirty scattered light correction designed for GradPak
+data. You&#8217;ll need this because IRAF&#8217;s scatter light routines cannot deal with
+the very small gaps between the fibers.</p>
+<p>The algorithm is simple. For each wavelength channel the &#8220;scattered light&#8221; is
+just a linear interpolation of the average of the dark regions beyond the
+edges of the slit. Essentially it finds the light scattered by the edge fibers
+and interpolates it across the whole slit. It&#8217;s not perfect, but it&#8217;s better
+than nothing and it works.</p>
+<p>The calling syntax is:</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt; python GradPak_scat.py input.lst output.lst
+</pre></div>
+</div>
+<p>where input.lst and output.lst contain the names of the input and output fits
+files, one on each line. If you&#8217;ve ever used &#64;lists in IRAF you will
+understand what is required here.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The pixel locations of the off-slit dark regions is currently
+hardcoded based on a 2x2 binning scheme. If you didn&#8217;t use 2x2 binning
+this will not work as expected.</p>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="GradPak_scat.do_multi">
+<code class="descclassname">GradPak_scat.</code><code class="descname">do_multi</code><span class="sig-paren">(</span><em>inputs</em>, <em>outputs</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_scat.do_multi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read input and output files and run <a class="reference internal" href="#GradPak_scat.do_single" title="GradPak_scat.do_single"><code class="xref py py-meth docutils literal"><span class="pre">GradPak_scat.do_single()</span></code></a> on each pair</p>
+<p>Very simple; just read the lines and run the main function. The only
+little hiccup is that readlines() keeps the newline characters around in the
+names so we need to nuke those.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>inputs</strong> : str</p>
+<blockquote>
+<div><p>Name of the file containing input image names, one per line</p>
+</div></blockquote>
+<p><strong>outputs</strong> : str</p>
+<blockquote>
+<div><p>Name of the file containing output image names, one per line</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_scat.do_single">
+<code class="descclassname">GradPak_scat.</code><code class="descname">do_single</code><span class="sig-paren">(</span><em>input_image</em>, <em>output_image</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_scat.do_single" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a GradPak scattered light correction on a single image.</p>
+<p>First compute the mean &#8220;gutter&#8221; (the regions beyond the edges of the slit)
+spectrum, then interpolated between the two gutters at each
+wavelength. Finally, subtract this interpolated image from the input and
+write the results to the output file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_image</strong> : str</p>
+<blockquote>
+<div><p>Name of the input FITS image</p>
+</div></blockquote>
+<p><strong>output_image</strong> : str</p>
+<blockquote>
+<div><p>Name of the file to contain the scattered light corrected FITS image</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Currently hardwired for 2x2 binning. Will likely work in any case
+where binning in the spatial dimension is 2, but this has not been tested.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">GradPak_scat</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="GradPak_skysub.html"
+                        title="previous chapter">GradPak_skysub</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/GradPak_scat.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="GradPak_skysub.html" title="GradPak_skysub"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Arthur Eigenbrot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4a0+.
+    </div>
+  </body>
+</html>
