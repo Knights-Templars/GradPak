@@ -1,3 +1,39 @@
+#! /usr/bin/python
+#
+"""
+***********
+GradPak_bin
+***********
+
+This module provides useful functions for binning GradPak fibers together to
+achieve higher Signal to Noise (SNR). Given a desired SNR the algorithm will
+bin fibers together until either the SNR or the end of a row is reached. The
+current main limitation with this algorithm is that it will not smartly add a
+single fiber at the end of a row to the preceeding bin even if that single
+fiber has a low SNR.
+
+There are many ways to compute the SNR, this module does it simply:
+
+SNR = <signal/noise>
+
+where signal are the values in the datafile and noise are the values in the errfile.
+
+In addition to generating binned spectra this module provides a method for
+computing the location of each bin, in arcsec or kpc, in a coordinate system
+defined by the user (usually relative to some galaxy's center).
+
+Useful Example
+--------------
+
+For my NGC 891 work I use::
+
+ >>> GPB.bin('NGC_891_P3.ms_rfs_lin.fits','NGC_891_P3.mse_rfs_lin.fits',30,'NGC_891_P3_bin30',exclude=[92,93])
+ >>> GPB.create_locations('NGC_891_P3_bin30.ms.fits',ifucenter=[35.636325,42.37935])
+
+Functions
+---------
+"""
+
 import time
 import numpy as np
 import pyfits
@@ -5,7 +41,76 @@ import GradPak_plot as GPP
 import matplotlib.pyplot as plt
 
 def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[]):
+    """Bin GradPak fibers along a row until the desired SNR is achieved.
 
+    The way fibers are grouped together is somewhat simplistic, but the
+    underlying mathematics is correct. 
+
+    The first bin starts at the smallest non-sky, non-excluded fiber (usually
+    fiber #3) and just keeps adding the next fiber until the desire SNR is
+    reached. Fibers are not binned across rows, which ensures that each bin is
+    made up only of fibers of one size, but also limits the amount of binning
+    that can be done. The major limitation of this method is that the ends of
+    rows can often be left with a single, low SNR fiber. For example, if a bin
+    is constructed containing fibers 14-16 and fiber 17 (at the end of the
+    row) is below the threshold it will not be added to the previous bin and
+    instead will make up a single bin with low a low SNR. This should be easy
+    to fix but in practice it doesn't cause that much of an issue so I just
+    haven't done it.
+
+    The spectrum for each bin is an average of all the contributing fibers,
+    weighted by each individual's SNR^2. The corresponding error bin is a sum
+    in quadrature, weighted in the same way.
+
+    The history of each bin is recorded in the output FITS header using two keywords:
+
+     **BINXXXF** The fibers that went into bin XXX
+
+     **BINXXXP** The position (in arcsec) of the center of bin XXX. This is
+       the *unweighted* average of the centers of the contributing fibers.
+
+    Parameters
+    ----------
+
+    datafile : str
+        The name of a multispec FITS file that you want to bin
+
+    errfile : str
+        The name of a multispec FITS file containing error vectors corresponding to the datafile
+
+    SNR : float
+        The minimum SNR in each bin
+
+    outputfile : str 
+        The base name of the binned spectral and error arrays. The results
+        will be called OUTPUTFILE.ms.fits and OUTPUTFILE.me.fits.
+
+    waverange : list (default: None)
+        A 2 element list containing the minimum and maximum wavelengths
+        to consider *for the SNR calculations*. Regardless of this parameter
+        the final output will span the same wavelength range as the input
+        files.
+    
+    exclude : list (default: [])
+        A list containing fibers to exlcude from binning. Sky fibers are
+        automatically excluded and fiber numbers start at 1.
+
+    Returns
+    -------
+    
+    finalf : numpy.ndarray
+        Array with shape NBINS x NWAVE containing the binned data
+
+    finatle : numpy.ndarray
+        Array with same shape as finalf containing the errors on the binned data
+
+    fibdict : dict
+        Dictionary of questionable usefulness that contains information about
+        which fibers went into each bin. The keys are ROW_BIN and the entries
+        are a list of the fibers that went into that bin (e.g., '1_2' for the
+        second bin in the first row).
+
+    """
     hdu = pyfits.open(datafile)[0]
     data = hdu.data
     err = pyfits.open(errfile)[0].data
