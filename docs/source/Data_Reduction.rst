@@ -24,8 +24,8 @@ flux-calibrated spectra ready for analysis. Steps in *italics* are
 cruicially different for GradPak than any other IFU.
 
 .. note:: Completing all the steps below will require the IRAF prompt as well
-          as whatever Linux shell you use. I will use '[packagename]> ' to
-          denote IRAF commands and '#> ' to denote shell commands.
+          as whatever Linux shell you use. I will use '[packagename]>' to
+          denote IRAF commands and '>' to denote shell commands.
 
 
 1. Basic Reductions
@@ -414,3 +414,247 @@ otherwise keep it as *onedstds$kpnoextinct.dat*. The rest is really easy::
  onedspec> calibrate @airmass.lst @airmass_rf.lst
 
 That's it. You're all done!
+
+IRAF Parameter List
+===================
+
+Below is a repository of all the main IRAF tasks mentioned above and the full
+set of parameters I use for must reductions. DO NOT just use these blindly
+because your setup might necessitate significant changes. They are merely
+presented to give the full picture.
+
+imclean
+-------
+::
+
+   PACKAGE = gbupkg
+   TASK = imclean
+
+   imlist  =                       Input image list (template)
+   cleanlis=                       Ouput image list (template)
+   gpm     =                 none  Good pix mask (1=good; 0=bad), or none
+   (npasses=                    5) CR npasses param (nom. val. 5)
+   (fluxrat=                  8.5) CR fluxrat param (nom. val. 8.5)
+   (window =                    7) CR window param (nom. val. 7)
+   (thresho=                   5.) CR threshold param in units of stddev (nom. val. 5)
+   (stat_ty=            iterstats) Stddev type: iterstats, goodstats, or constant
+   (cstddev=                   5.) Value for user-supplied constant stddev
+   (nrep   =                    3) Repeat cosmic ray finding nrep times
+   (nneigh =                    1) Repeat adding nearest neighbors to CR map nneigh times
+   (nx0    =                   11) X dim of initial cleaning box (using input gpm)
+   (ny0    =                    1) Y dim of initial cleaning box (using input gpm)
+   (nxi    =                    1) X dim of CR cleaning box for nrep iterations
+   (nyi    =                    3) Y dim of CR cleaning box for nrep iterations
+   (fixall =                  yes) Repeat bad pixel fixing until all are fixed? (CRs only)
+   (verbose=                  yes) Print action ?
+   (display=                   no) Display most results for each iteration?
+   (interac=                   no) Use cosmicrays in interactive mode
+   (keepmas=                   no) Keep masks use to clean cosmicrays?
+   (masklis=                     ) Template of masks needed if keepmask=yes
+   (mylist1=           ImL9407lvb)
+   (mylist2=           CmL9407mvb)
+   (mylist3=           MmL6359drc)
+   (mode   =                    q)
+
+**HYDRA** params
+----------------
+::
+
+ PACKAGE = hydra
+    TASK = params
+
+ (line   =                INDEF) Default dispersion line
+ (nsum   =                    6) Number of dispersion lines to sum or median
+ (order  =           decreasing) Order of apertures
+ (extras =                   no) Extract sky, sigma, etc.?
+
+                                -- DEFAULT APERTURE LIMITS --
+ (lower  =                  -5.) Lower aperture limit relative to center
+ (upper  =                   5.) Upper aperture limit relative to center
+
+				 -- AUTOMATIC APERTURE RESIZING PARAMETERS --
+ (ylevel =                  0.3) Fraction of peak or intensity for resizing
+
+				 -- TRACE PARAMETERS --
+ (t_step =                   10) Tracing step
+ (t_funct=              spline3) Trace fitting function
+ (t_order=                    3) Trace fitting function order
+ (t_niter=                    1) Trace rejection iterations
+ (t_low  =                   3.) Trace lower rejection sigma
+ (t_high =                   3.) Trace upper rejection sigma
+
+				 -- SCATTERED LIGHT PARAMETERS --
+ (buffer =                   0.) Buffer distance from apertures
+ (apscat1=                     ) Fitting parameters across the dispersion
+ (apscat2=                     ) Fitting parameters along the dispersion
+
+				 -- APERTURE EXTRACTION PARAMETERS --
+ (weights=                 none) Extraction weights (none|variance)
+ (pfit   =                fit1d) Profile fitting algorithm (fit1d|fit2d)
+ (lsigma =                   3.) Lower rejection threshold
+ (usigma =                   3.) Upper rejection threshold
+ (nsubaps=                    1) Number of subapertures
+
+				 -- FLAT FIELD FUNCTION FITTING PARAMETERS --
+ (f_inter=                  yes) Fit flat field interactively?
+ (f_funct=              spline3) Fitting function
+ (f_order=                   12) Fitting function order
+
+				 -- ARC DISPERSION FUNCTION PARAMETERS --
+ (thresho=                  10.) Minimum line contrast threshold
+ (coordli=   linelists$cuar.dat) Line list
+ (match  =                  -3.) Line list matching limit in Angstroms
+ (fwidth =                   4.) Arc line widths in pixels
+ (cradius=                  10.) Centering radius in pixels
+ (i_funct=              spline3) Coordinate function
+ (i_order=                    1) Order of dispersion function
+ (i_niter=                   10) Rejection iterations
+ (i_low  =                   4.) Lower rejection sigma
+ (i_high =                   4.) Upper rejection sigma
+ (refit  =                  yes) Refit coordinate function when reidentifying?
+ (addfeat=                   no) Add features when reidentifying?
+
+				 -- AUTOMATIC ARC ASSIGNMENT PARAMETERS --
+ (select =               interp) Selection method for reference spectra
+ (sort   =                     ) Sort key
+ (group  =                     ) Group key
+ (time   =                   no) Is sort key a time?
+ (timewra=                  17.) Time wrap point for time sorting
+
+				 -- DISPERSION CORRECTION PARAMETERS --
+ (lineari=                   no) Linearize (interpolate) spectra?
+ (log    =                   no) Logarithmic wavelength scale?
+ (flux   =                  yes) Conserve flux?
+
+				 -- SKY SUBTRACTION PARAMETERS --
+ (combine=              average) Type of combine operation
+ (reject =            avsigclip) Sky rejection option
+ (scale  =                 none) Sky scaling option
+ (mode   =                   ql)
+
+dohydra
+-------
+::
+
+ PACKAGE = hydra
+    TASK = dohydra
+
+ objects =                       List of object spectra
+ (apref  =                     ) Aperture reference spectrum
+ (flat   =    dFlat_master.fits) Flat field spectrum
+ (through=                     ) Throughput file or image (optional)
+ (arcs1  =          Comp_s.fits) List of arc spectra
+ (arcs2  =                     ) List of shift arc spectra
+ (arcrepl=                     ) Special aperture replacements
+ (arctabl=                     ) Arc assignment table (optional)
+
+ (readnoi=                  3.9) Read out noise sigma (photons)
+ (gain   =                0.438) Photon gain (photons/data number)
+ (datamax=                INDEF) Max data value / cosmic ray threshold
+ (fibers =                  109) Number of fibers
+ (width  =                   6.) Width of profiles (pixels)
+ (minsep =                   1.) Minimum separation between fibers (pixels)
+ (maxsep =                  10.) Maximum separation between fibers (pixels)
+ (apidtab= /d/monk/eigenbrot/WIYN/gradpak_sizes.iraf) Aperture identifications
+ (crval  =                INDEF) Approximate central wavelength
+ (cdelt  =                INDEF) Approximate dispersion
+ (objaps =                     ) Object apertures
+ (skyaps =                     ) Sky apertures
+ (arcaps =                     ) Arc apertures
+ (objbeam=                  0,1) Object beam numbers
+ (skybeam=                    0) Sky beam numbers
+ (arcbeam=                     ) Arc beam numbers
+
+ (scatter=                   no) Subtract scattered light?
+ (fitflat=                   no) Fit and ratio flat field spectrum?
+ (clean  =                   no) Detect and replace bad pixels?
+ (dispcor=                  yes) Dispersion correct spectra?
+ (savearc=                  yes) Save simultaneous arc apertures?
+ (skyalig=                   no) Align sky lines?
+ (skysubt=                   no) Subtract sky?
+ (skyedit=                  yes) Edit the sky spectra?
+ (savesky=                  yes) Save sky spectra?
+ (splot  =                   no) Plot the final spectrum?
+ (redo   =                   no) Redo operations if previously done?
+ (update =                  yes) Update spectra if cal data changes?
+ (batch  =                   no) Extract objects in batch?
+ (listonl=                   no) List steps but don't process?
+
+ (params =                     ) Algorithm parameters
+ (mode   =                   ql)
+
+standard
+--------
+::
+
+ PACKAGE = onedspec
+    TASK = standard
+
+ input   =                       Input image file root name
+ output  =                  std  Output flux file (used by SENSFUNC)
+ (samesta=                  yes) Same star in all apertures?
+ (beam_sw=                   no) Beam switch spectra?
+ (apertur=                     ) Aperture selection list
+ (bandwid=                INDEF) Bandpass widths
+ (bandsep=                INDEF) Bandpass separation
+ (fnuzero=  3.6800000000000E-20) Absolute flux zero point
+ (extinct= onedstds$kpnoextinct.dat) Extinction file
+ (caldir =  onedstds$spec50cal/) Directory containing calibration data
+ (observa=       )_.observatory) Observatory for data
+ (interac=                  yes) Graphic interaction to define new bandpasses
+ (graphic=             stdgraph) Graphics output device
+ (cursor =                     ) Graphics cursor input
+ star_nam=             bd284211  Star name in calibration list
+ airmass =                       Airmass
+ exptime =                       Exposure time (seconds)
+ mag     =                       Magnitude of star
+ magband =                       Magnitude type
+ teff    =                       Effective temperature or spectral type
+ answer  =                  yes  (no|yes|NO|YES|NO!|YES!)
+ (mode   =                   ql)
+
+sensfunc
+--------
+::
+
+ PACKAGE = onedspec
+    TASK = sensfunc
+
+ standard=                  std  Input standard star data file (from STANDARD)
+ sensitiv=                 sens  Output root sensitivity function imagename
+ (apertur=                     ) Aperture selection list
+ (ignorea=                  yes) Ignore apertures and make one sensitivity function?
+ (logfile=              logfile) Output log for statistics information
+ (extinct= onedstds$kpnoextinct.dat) Extinction file
+ (newexti=       n4_extinct.dat) Output revised extinction file
+ (observa=       )_.observatory) Observatory of data
+ (functio=              spline3) Fitting function
+ (order  =                    6) Order of fit
+ (interac=                  yes) Determine sensitivity function interactively?
+ (graphs =                   sr) Graphs per frame
+ (marks  =       plus cross box) Data mark types (marks deleted added)
+ (colors =              2 1 3 4) Colors (lines marks deleted added)
+ (cursor =                     ) Graphics cursor input
+ (device =             stdgraph) Graphics output device
+ answer  =                  yes  (no|yes|NO|YES)
+ (mode   =                   ql)
+
+calibrate
+---------
+::
+
+ PACKAGE = onedspec
+    TASK = calibrate
+
+ input   =         @airmass.lst  Input spectra to calibrate
+ output  =      @airmass_rf.lst  Output calibrated spectra
+ (extinct=                  yes) Apply extinction correction?
+ (flux   =                  yes) Apply flux calibration?
+ (extinct= onedstds$kpnoextinct.dat) Extinction file
+ (observa=       )_.observatory) Observatory of observation
+ (ignorea=                  yes) Ignore aperture numbers in flux calibration?
+ (sensiti=                 sens) Image root name for sensitivity spectra
+ (fnu    =                   no) Create spectra having units of FNU?
+ airmass =                       Airmass
+ exptime =                       Exposure time (seconds)
+ (mode   =                   ql)
