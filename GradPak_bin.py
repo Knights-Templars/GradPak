@@ -119,8 +119,6 @@ def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[]):
         wave = (np.arange(data.shape[1]) + hdu.header['CRPIX1'] - 1)\
                *hdu.header['CDELT1'] + hdu.header['CRVAL1']
         waveidx = np.where((wave >= waverange[0]) & (wave <= waverange[1]))[0]
-        # data = data[:,waveidx]
-        # err = err[:,waveidx]
     else:
         waveidx = None
 
@@ -215,7 +213,35 @@ def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[]):
     return finalf, finale, fibdict
 
 def create_bin(fstack, estack, snstack):
+    """Weight and combine data and errors into new bins.
 
+    The weights are simply SNR^2.
+
+    Parameters
+    ----------
+
+    fstack : numpy.ndarray
+        A NxM array where of data values N is the number of fibers to add to
+        the bin and M is the number of wavelength channels. Generally the 1st
+        element of this array is the current bin, not an individual fiber.
+
+    estack : numpy.ndarray
+        The errors corresponding to fstack. Should be the same shape as fstack
+
+    snstack : numpy.ndarray
+        Array containing the SNR of each of the N entries in fstack
+
+    Returns
+    -------
+    
+    newbin : numpy.ndarray
+        Array of length M containing the weighted average of fstack
+    
+    newerr : numpy.ndarray
+        Array of length M containing the errors on newbin. Errors are combined
+        in weighted quadrature.
+
+    """
     sumW = np.sum(snstack**2)
 
     newbin = np.sum(fstack*snstack**2,axis=0)/sumW
@@ -224,7 +250,28 @@ def create_bin(fstack, estack, snstack):
     return newbin, newerr
 
 def compute_SN(signal, noise, idx=None):
+    """Given signal and noise vectors, compute the SNR (possibly over a specific range).
 
+    Parameters
+    ----------
+
+    signal : numpy.ndarray
+        A 1D vector of data values
+
+    noise : numpy.ndarray
+        A 1D vector of error values
+
+    idx : numpy.ndarray (default=None)
+        A 1D vector containing the index values of a sub region used to
+        compute the SNR
+
+    Returns
+    -------
+
+    SNR : float
+        The signal to noise. Computed simply as <signal/noise>
+
+    """
     zidx = np.where(noise[idx] != 0)
 
     return np.mean(signal[idx][zidx]/(noise[idx][zidx]))
@@ -232,6 +279,63 @@ def compute_SN(signal, noise, idx=None):
 def create_locations(binfile, galcenter=[35.637962,42.347629], 
                      ifucenter=[35.637962,42.347629], reffiber=105,
                      galpa=293.3, ifupa=295.787, kpc_scale=0.0485):
+    """Given a binned data file, creat a list of bin locations, relative to a galactic center.
+
+    The function is designed to give physical meaning to the location of each
+    bin created by :func:`bin`. For each bin found in the FITS header it
+    computes physical coordinates in both arcsec and kpc. This method was
+    written with a 2D projection of cylindrical coordinates in mind (r,z), but
+    the user is free to fully define the location and meaning of the
+    coordinate system through keyword options.
+
+    The output is a text file containig the location of each bin in the
+    desired coordinate system.
+
+    The current defaults are for NGC 891 and WIYN proposal 14B-0456. You
+    should probably change them.
+
+    Parameters
+    ----------
+    
+    binfile : str
+        The name of a FITS file produced by :func:`bin`
+    
+    galcenter : list, optional
+        A list containing the [RA,DEC] coordinates of the center of the
+        coordinate system. The units are decimal degrees.
+
+    ifucenter : list, optional 
+        A list containing the center of the fiber specified in
+        **reffiber**. Units are decimal degrees. This is usually the
+        coordinates of your GradPak pointing.
+
+    reffiber : int, optional
+        The *fiber* number whoes coordinates are given in **ifucenter**. This
+        is generally the fiber you used to align GradPak during observations.
+
+    galpa : float, optional
+        The position angle of the desired coordinate system. This angle
+        defines rotation of the horizontal axis relative to the sky.
+    
+    ifupa : float, optional 
+        The position angle of GradPak. This is defined as an absolute PA,
+        relative to North, *not* to the defined coordinate system. This is
+        generally the PA you entered during GradPak observations.
+    
+    kpc_scale : float, optional
+        kpc/arcsec of the object in question
+
+    Returns
+    -------
+
+    None :
+        The result is file with the suffix "locations.dat" that contains
+        information about the location in the user defined coordinates of each
+        aperture (bin). Coordinates are given in arcsec and kpc. Note that the
+        reported "size" is the size of the fibers that went into each bin, not
+        the size of the bin itself. This is admittedly confusing.
+
+    """
 
     hdu = pyfits.open(binfile)[0]
     numaps = hdu.data.shape[0]
