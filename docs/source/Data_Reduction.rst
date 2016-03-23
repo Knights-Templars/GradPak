@@ -430,16 +430,81 @@ frames of the same sky location. This method starts from photon counting
 statistics and propagates these uncertainties through the entire reduction
 pipline. A few assumptions are made that affect accuracy for the sake of
 simplicity, but all in all this method works well and will give you good error
-estimates. 
+estimates.
 
-The 
+If you are using this method you will combine all of your data frames
+after basic reductions, but before you jump into any HYDRA functions
+(step 2). Then, at the end of all the reduction use mab's **rawimerr**
+(see the SparsePak reduction guide) to get a sigma image::
+
+ ifupkg> rawimerr -INGC_891_P2.fits -o44 -b25 -nim7
+
+and propagate this image through the GradPak pipline::
+
+ > python ~/snakes/GradPak_error.py NGC_891_P2.sig.fits
+
 For more details see :mod:`GradPak_error`.
 
 Multi-Frame Error Estimates
 ---------------------------
 
-If 
+If you have a statistically sufficient number of single frames for each
+pointing/object/sky position/whatever then you can take a shortcut in
+the error calculations. All you do is reduce each frame separately
+(i.e., don't combine individual frames before reduction) and only
+combine them into a single frame after all other reduction steps are
+completed. The standard deviation of this combination is then an
+accurate estimate of the uncertainties on each wavelength
+channel.
 
+This method is only valid when there were no changes to the
+telescope/instrument system between each frame. In other words, you
+have to be sure that each individual frame is just a different sample
+of the same underlying photon distribution. If this is true then in
+some ways a multi-frame error estimation can be more ``correct'' than
+full error propagation because it inherently includes envirornmental
+factors like transparency and seeing variations; a full propagation
+assumes no difference to the *detector input* while a multi-frame
+estimate accepts that this input might be perturbed from its ``true''
+value by stochastic variations in the entire system.
+
+One last benefit of a multi-frame error estimation is that it easily
+accomidates the same sky position observed over multiple nights.
+
+But enough philosophy, how do you actually get errors for this method?
+In it's most basic form all you do is average your individual frames
+together to get the final data spectra and take the standard deviation
+to get the error spectra, but we can do better! Not all frames are
+created equal so a weighted average is often better. For weights I use
+the w = 1/snr^2, where ``snr'' comes from **imexam**'s 'm' key in a
+flat part of a sky fiber (use the same fiber for all
+frames). **imcombine** takes care of the rest::
+
+ onedspec> imcombine @combine.lst NGC_891_P3.ms_rfs_lin.fits sigma=NGC_891_P3.me_rfs_lin.fits combine=average reject=sigclip weight=@ind-all-rf-P3_weights.lst scale=@ind-all-rf-P3_scales.lst 
+
+A few notes:
+
+ * You can set *combine=median* if you want, but if, after all the
+   reduction steps, you still have outlying pixels then something
+   might be wrong.
+
+ * *reject=sigclip* is somewhat important. Don't use 'avsigclip'
+    because, after all that reduction, your pixel values no longer
+    follow poisson statistics
+
+ * In the above example I used the *scale* keyword to remove the
+   impact of some (grey) cirrus clouds that I know intruded on a
+   subset of data frames. You might not need this.
+
+The last step is to take your *sigma* image, which is simply the
+standard deviation and turn it into a measure of the *standard error*,
+which is what we really care about. Simply divide by the square root
+of the number of frames, so if we had, for example, 11 frames the call
+would be::
+
+ onedspec> imarith NGC_891_P3.me_rfs_lin.fits / 3.317 NGC_891_P3.mse_rfs_lin.fits
+
+That's it!
 
 IRAF Parameter List
 ===================
