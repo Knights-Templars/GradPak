@@ -415,6 +415,32 @@ otherwise keep it as *onedstds$kpnoextinct.dat*. The rest is really easy::
 
 That's it. You're all done!
 
+A Note About Errors
+===================
+
+Having error vectors to go along with your reduced spectra feels great and
+there is no reason why you should not have them. There are two ways that I
+have so far used to to get errors, both working best in different cases.
+
+Full Error Propagation
+----------------------
+
+Full propagation of the errors is the way to go if you do not have a lot of
+frames of the same sky location. This method starts from photon counting
+statistics and propagates these uncertainties through the entire reduction
+pipline. A few assumptions are made that affect accuracy for the sake of
+simplicity, but all in all this method works well and will give you good error
+estimates. 
+
+The 
+For more details see :mod:`GradPak_error`.
+
+Multi-Frame Error Estimates
+---------------------------
+
+If 
+
+
 IRAF Parameter List
 ===================
 
