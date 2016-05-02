@@ -41,6 +41,54 @@ and arc images to beat down the noise. At the end of this step you should have:
 * All of your program frames (object, standard stars, etc.) that have been
   trimmed, overscan corrected, and zero and dark subtracted.
 
+Here's a quick look at how I do this:
+
+Overscan correct and trim *all* your images with **ccdproc** (make sure to
+turn of the dark, bias, and flat corrections)::
+
+ ccdred> ccdproc @all_my_files.lst @all_my_files_ot.lst overscan+ trim+ zerocor- darkcor- flatcor- illumco- 
+         biassec=image trimsec=image interact+ order=100
+
+Then use imstat to identify any zero frames that have strangely large standard
+deviations. Take these out of your master zero list. The combine all your
+zeros into one master zero frame::
+
+ ccdred> imcombine @culled_zeros.lst Zero.fits combine=average reject=crreject
+
+Now subtract this master zero from all other data::
+
+ ccdred> ccdproc @all_my_files_ot.lst overscan- trim- zerocor+ darkcor- flatcor- illumcor- zero=Zero.fits
+
+Now combine all your zero corrected dark, arc, and flat frames using
+**imcombine**. Remember to keep flats of different exposure times
+separate. Finally, subtract your master dark from all of your data frames. You
+do not need to worry about dark correcting your arc or flat frames because the
+exposure times are so small and the signal is so high it really doesn't
+matter.
+
+Scattered Light Corrections
+---------------------------
+
+You probably will want to make some correction for light that gets scattered
+from one aperture into another. IRAF does have a routine to do this
+(**noao.imred.hydra.apscatter**), but in practice the very tight arrangement
+of the GradPak slit renders it mostly useless. To deal with scattered light we
+have taken a zeroth order approach (which, again, given the very tight
+spacing, is the best we can do).
+
+:mod:`GradPak_scat` provides a simple method for subtracting scattered light
+from GradPak data. We average all the flux in the ``gutters'' (regions on the
+CCD that fall outside of the slit proper) of the CCD and perform a simple
+linear interpolation across the slit to get an estimate for the scattered
+light at each fiber location.
+
+The idea behind this method is that the gutters contain only scattered light
+from the end fibers and are therefore decent anchors for the ends of a
+scattered light function. In the absense of any knowledge of how the scattered
+light actually varies with position we assume a linear function and get on
+with it. Quick and simple and probably not too bad. See :mod:`GradPak_scat`
+for more details.
+
 2. *Prepare Master Flat*
 ========================
 
