@@ -77,7 +77,7 @@ have taken a zeroth order approach (which, again, given the very tight
 spacing, is the best we can do).
 
 :mod:`GradPak_scat` provides a simple method for subtracting scattered light
-from GradPak data. We average all the flux in the ``gutters'' (regions on the
+from GradPak data. We average all the flux in the "gutters" (regions on the
 CCD that fall outside of the slit proper) of the CCD and perform a simple
 linear interpolation across the slit to get an estimate for the scattered
 light at each fiber location.
