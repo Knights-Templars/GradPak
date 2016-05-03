@@ -1,0 +1,356 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>IRAF Parameter List &mdash; GradPak 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GradPak 1.0 documentation" href="index.html" />
+    <link rel="up" title="Data Reduction" href="Data_Reduction.html" />
+    <link rel="next" title="GradPak_flatfu" href="GradPak_flatfu.html" />
+    <link rel="prev" title="Data Reduction" href="Data_Reduction.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="GradPak_flatfu.html" title="GradPak_flatfu"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="Data_Reduction.html" title="Data Reduction"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="Data_Reduction.html" accesskey="U">Data Reduction</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="iraf-parameter-list">
+<h1>IRAF Parameter List<a class="headerlink" href="#iraf-parameter-list" title="Permalink to this headline">¶</a></h1>
+<p>Below is a repository of all the main IRAF tasks mentioned above and the full
+set of parameters I use for must reductions. DO NOT just use these blindly
+because your setup might necessitate significant changes. They are merely
+presented to give the full picture.</p>
+<div class="section" id="imclean">
+<h2>imclean<a class="headerlink" href="#imclean" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>PACKAGE = gbupkg
+TASK = imclean
+
+imlist  =                       Input image list (template)
+cleanlis=                       Ouput image list (template)
+gpm     =                 none  Good pix mask (1=good; 0=bad), or none
+(npasses=                    5) CR npasses param (nom. val. 5)
+(fluxrat=                  8.5) CR fluxrat param (nom. val. 8.5)
+(window =                    7) CR window param (nom. val. 7)
+(thresho=                   5.) CR threshold param in units of stddev (nom. val. 5)
+(stat_ty=            iterstats) Stddev type: iterstats, goodstats, or constant
+(cstddev=                   5.) Value for user-supplied constant stddev
+(nrep   =                    3) Repeat cosmic ray finding nrep times
+(nneigh =                    1) Repeat adding nearest neighbors to CR map nneigh times
+(nx0    =                   11) X dim of initial cleaning box (using input gpm)
+(ny0    =                    1) Y dim of initial cleaning box (using input gpm)
+(nxi    =                    1) X dim of CR cleaning box for nrep iterations
+(nyi    =                    3) Y dim of CR cleaning box for nrep iterations
+(fixall =                  yes) Repeat bad pixel fixing until all are fixed? (CRs only)
+(verbose=                  yes) Print action ?
+(display=                   no) Display most results for each iteration?
+(interac=                   no) Use cosmicrays in interactive mode
+(keepmas=                   no) Keep masks use to clean cosmicrays?
+(masklis=                     ) Template of masks needed if keepmask=yes
+(mylist1=           ImL9407lvb)
+(mylist2=           CmL9407mvb)
+(mylist3=           MmL6359drc)
+(mode   =                    q)
+</pre></div>
+</div>
+</div>
+<div class="section" id="hydra-params">
+<h2><strong>HYDRA</strong> params<a class="headerlink" href="#hydra-params" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>PACKAGE = hydra
+   TASK = params
+
+(line   =                INDEF) Default dispersion line
+(nsum   =                    6) Number of dispersion lines to sum or median
+(order  =           decreasing) Order of apertures
+(extras =                   no) Extract sky, sigma, etc.?
+
+                               -- DEFAULT APERTURE LIMITS --
+(lower  =                  -5.) Lower aperture limit relative to center
+(upper  =                   5.) Upper aperture limit relative to center
+
+                                -- AUTOMATIC APERTURE RESIZING PARAMETERS --
+(ylevel =                  0.3) Fraction of peak or intensity for resizing
+
+                                -- TRACE PARAMETERS --
+(t_step =                   10) Tracing step
+(t_funct=              spline3) Trace fitting function
+(t_order=                    3) Trace fitting function order
+(t_niter=                    1) Trace rejection iterations
+(t_low  =                   3.) Trace lower rejection sigma
+(t_high =                   3.) Trace upper rejection sigma
+
+                                -- SCATTERED LIGHT PARAMETERS --
+(buffer =                   0.) Buffer distance from apertures
+(apscat1=                     ) Fitting parameters across the dispersion
+(apscat2=                     ) Fitting parameters along the dispersion
+
+                                -- APERTURE EXTRACTION PARAMETERS --
+(weights=                 none) Extraction weights (none|variance)
+(pfit   =                fit1d) Profile fitting algorithm (fit1d|fit2d)
+(lsigma =                   3.) Lower rejection threshold
+(usigma =                   3.) Upper rejection threshold
+(nsubaps=                    1) Number of subapertures
+
+                                -- FLAT FIELD FUNCTION FITTING PARAMETERS --
+(f_inter=                  yes) Fit flat field interactively?
+(f_funct=              spline3) Fitting function
+(f_order=                   12) Fitting function order
+
+                                -- ARC DISPERSION FUNCTION PARAMETERS --
+(thresho=                  10.) Minimum line contrast threshold
+(coordli=   linelists$cuar.dat) Line list
+(match  =                  -3.) Line list matching limit in Angstroms
+(fwidth =                   4.) Arc line widths in pixels
+(cradius=                  10.) Centering radius in pixels
+(i_funct=              spline3) Coordinate function
+(i_order=                    1) Order of dispersion function
+(i_niter=                   10) Rejection iterations
+(i_low  =                   4.) Lower rejection sigma
+(i_high =                   4.) Upper rejection sigma
+(refit  =                  yes) Refit coordinate function when reidentifying?
+(addfeat=                   no) Add features when reidentifying?
+
+                                -- AUTOMATIC ARC ASSIGNMENT PARAMETERS --
+(select =               interp) Selection method for reference spectra
+(sort   =                     ) Sort key
+(group  =                     ) Group key
+(time   =                   no) Is sort key a time?
+(timewra=                  17.) Time wrap point for time sorting
+
+                                -- DISPERSION CORRECTION PARAMETERS --
+(lineari=                   no) Linearize (interpolate) spectra?
+(log    =                   no) Logarithmic wavelength scale?
+(flux   =                  yes) Conserve flux?
+
+                                -- SKY SUBTRACTION PARAMETERS --
+(combine=              average) Type of combine operation
+(reject =            avsigclip) Sky rejection option
+(scale  =                 none) Sky scaling option
+(mode   =                   ql)
+</pre></div>
+</div>
+</div>
+<div class="section" id="dohydra">
+<h2>dohydra<a class="headerlink" href="#dohydra" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>PACKAGE = hydra
+   TASK = dohydra
+
+objects =                       List of object spectra
+(apref  =                     ) Aperture reference spectrum
+(flat   =    dFlat_master.fits) Flat field spectrum
+(through=                     ) Throughput file or image (optional)
+(arcs1  =          Comp_s.fits) List of arc spectra
+(arcs2  =                     ) List of shift arc spectra
+(arcrepl=                     ) Special aperture replacements
+(arctabl=                     ) Arc assignment table (optional)
+
+(readnoi=                  3.9) Read out noise sigma (photons)
+(gain   =                0.438) Photon gain (photons/data number)
+(datamax=                INDEF) Max data value / cosmic ray threshold
+(fibers =                  109) Number of fibers
+(width  =                   6.) Width of profiles (pixels)
+(minsep =                   1.) Minimum separation between fibers (pixels)
+(maxsep =                  10.) Maximum separation between fibers (pixels)
+(apidtab= /d/monk/eigenbrot/WIYN/gradpak_sizes.iraf) Aperture identifications
+(crval  =                INDEF) Approximate central wavelength
+(cdelt  =                INDEF) Approximate dispersion
+(objaps =                     ) Object apertures
+(skyaps =                     ) Sky apertures
+(arcaps =                     ) Arc apertures
+(objbeam=                  0,1) Object beam numbers
+(skybeam=                    0) Sky beam numbers
+(arcbeam=                     ) Arc beam numbers
+
+(scatter=                   no) Subtract scattered light?
+(fitflat=                   no) Fit and ratio flat field spectrum?
+(clean  =                   no) Detect and replace bad pixels?
+(dispcor=                  yes) Dispersion correct spectra?
+(savearc=                  yes) Save simultaneous arc apertures?
+(skyalig=                   no) Align sky lines?
+(skysubt=                   no) Subtract sky?
+(skyedit=                  yes) Edit the sky spectra?
+(savesky=                  yes) Save sky spectra?
+(splot  =                   no) Plot the final spectrum?
+(redo   =                   no) Redo operations if previously done?
+(update =                  yes) Update spectra if cal data changes?
+(batch  =                   no) Extract objects in batch?
+(listonl=                   no) List steps but don&#39;t process?
+
+(params =                     ) Algorithm parameters
+(mode   =                   ql)
+</pre></div>
+</div>
+</div>
+<div class="section" id="standard">
+<h2>standard<a class="headerlink" href="#standard" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>PACKAGE = onedspec
+   TASK = standard
+
+input   =                       Input image file root name
+output  =                  std  Output flux file (used by SENSFUNC)
+(samesta=                  yes) Same star in all apertures?
+(beam_sw=                   no) Beam switch spectra?
+(apertur=                     ) Aperture selection list
+(bandwid=                INDEF) Bandpass widths
+(bandsep=                INDEF) Bandpass separation
+(fnuzero=  3.6800000000000E-20) Absolute flux zero point
+(extinct= onedstds$kpnoextinct.dat) Extinction file
+(caldir =  onedstds$spec50cal/) Directory containing calibration data
+(observa=       )_.observatory) Observatory for data
+(interac=                  yes) Graphic interaction to define new bandpasses
+(graphic=             stdgraph) Graphics output device
+(cursor =                     ) Graphics cursor input
+star_nam=             bd284211  Star name in calibration list
+airmass =                       Airmass
+exptime =                       Exposure time (seconds)
+mag     =                       Magnitude of star
+magband =                       Magnitude type
+teff    =                       Effective temperature or spectral type
+answer  =                  yes  (no|yes|NO|YES|NO!|YES!)
+(mode   =                   ql)
+</pre></div>
+</div>
+</div>
+<div class="section" id="sensfunc">
+<h2>sensfunc<a class="headerlink" href="#sensfunc" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>PACKAGE = onedspec
+   TASK = sensfunc
+
+standard=                  std  Input standard star data file (from STANDARD)
+sensitiv=                 sens  Output root sensitivity function imagename
+(apertur=                     ) Aperture selection list
+(ignorea=                  yes) Ignore apertures and make one sensitivity function?
+(logfile=              logfile) Output log for statistics information
+(extinct= onedstds$kpnoextinct.dat) Extinction file
+(newexti=       n4_extinct.dat) Output revised extinction file
+(observa=       )_.observatory) Observatory of data
+(functio=              spline3) Fitting function
+(order  =                    6) Order of fit
+(interac=                  yes) Determine sensitivity function interactively?
+(graphs =                   sr) Graphs per frame
+(marks  =       plus cross box) Data mark types (marks deleted added)
+(colors =              2 1 3 4) Colors (lines marks deleted added)
+(cursor =                     ) Graphics cursor input
+(device =             stdgraph) Graphics output device
+answer  =                  yes  (no|yes|NO|YES)
+(mode   =                   ql)
+</pre></div>
+</div>
+</div>
+<div class="section" id="calibrate">
+<h2>calibrate<a class="headerlink" href="#calibrate" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>PACKAGE = onedspec
+   TASK = calibrate
+
+input   =         @airmass.lst  Input spectra to calibrate
+output  =      @airmass_rf.lst  Output calibrated spectra
+(extinct=                  yes) Apply extinction correction?
+(flux   =                  yes) Apply flux calibration?
+(extinct= onedstds$kpnoextinct.dat) Extinction file
+(observa=       )_.observatory) Observatory of observation
+(ignorea=                  yes) Ignore aperture numbers in flux calibration?
+(sensiti=                 sens) Image root name for sensitivity spectra
+(fnu    =                   no) Create spectra having units of FNU?
+airmass =                       Airmass
+exptime =                       Exposure time (seconds)
+(mode   =                   ql)
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">IRAF Parameter List</a><ul>
+<li><a class="reference internal" href="#imclean">imclean</a></li>
+<li><a class="reference internal" href="#hydra-params"><strong>HYDRA</strong> params</a></li>
+<li><a class="reference internal" href="#dohydra">dohydra</a></li>
+<li><a class="reference internal" href="#standard">standard</a></li>
+<li><a class="reference internal" href="#sensfunc">sensfunc</a></li>
+<li><a class="reference internal" href="#calibrate">calibrate</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Data_Reduction.html"
+                        title="previous chapter">Data Reduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="GradPak_flatfu.html"
+                        title="next chapter">GradPak_flatfu</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="GradPak_flatfu.html" title="GradPak_flatfu"
+             >next</a></li>
+        <li class="right" >
+          <a href="Data_Reduction.html" title="Data Reduction"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="Data_Reduction.html" >Data Reduction</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Arthur Eigenbrot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4a0+.
+    </div>
+  </body>
+</html>

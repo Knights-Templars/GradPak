@@ -1,0 +1,358 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>GradPak_bin &mdash; GradPak 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GradPak 1.0 documentation" href="index.html" />
+    <link rel="next" title="GradPak_scat" href="GradPak_scat.html" />
+    <link rel="prev" title="GradPak_skysub" href="GradPak_skysub.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="GradPak_scat.html" title="GradPak_scat"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="GradPak_skysub.html" title="GradPak_skysub"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-GradPak_bin"></span><div class="section" id="gradpak-bin">
+<h1>GradPak_bin<a class="headerlink" href="#gradpak-bin" title="Permalink to this headline">¶</a></h1>
+<p>This module provides useful functions for binning GradPak fibers together to
+achieve higher Signal to Noise (SNR). Given a desired SNR the algorithm will
+bin fibers together until either the SNR or the end of a row is reached. The
+current main limitation with this algorithm is that it will not smartly add a
+single fiber at the end of a row to the preceeding bin even if that single
+fiber has a low SNR.</p>
+<p>There are many ways to compute the SNR, this module does it simply:</p>
+<p>SNR = &lt;signal/noise&gt;</p>
+<p>where signal are the values in the datafile and noise are the values in the errfile.</p>
+<p>In addition to generating binned spectra this module provides a method for
+computing the location of each bin, in arcsec or kpc, in a coordinate system
+defined by the user (usually relative to some galaxy&#8217;s center).</p>
+<div class="section" id="useful-example">
+<h2>Useful Example<a class="headerlink" href="#useful-example" title="Permalink to this headline">¶</a></h2>
+<p>For my NGC 891 work I use:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">GPB</span><span class="o">.</span><span class="n">bin</span><span class="p">(</span><span class="s1">&#39;NGC_891_P3.ms_rfs_lin.fits&#39;</span><span class="p">,</span><span class="s1">&#39;NGC_891_P3.mse_rfs_lin.fits&#39;</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="s1">&#39;NGC_891_P3_bin30&#39;</span><span class="p">,</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="mi">92</span><span class="p">,</span><span class="mi">93</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">GPB</span><span class="o">.</span><span class="n">create_locations</span><span class="p">(</span><span class="s1">&#39;NGC_891_P3_bin30.ms.fits&#39;</span><span class="p">,</span><span class="n">ifucenter</span><span class="o">=</span><span class="p">[</span><span class="mf">35.636325</span><span class="p">,</span><span class="mf">42.37935</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="GradPak_bin.bin">
+<code class="descclassname">GradPak_bin.</code><code class="descname">bin</code><span class="sig-paren">(</span><em>datafile</em>, <em>errfile</em>, <em>SNR</em>, <em>outputfile</em>, <em>waverange=None</em>, <em>exclude=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_bin.bin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bin GradPak fibers along a row until the desired SNR is achieved.</p>
+<p>The way fibers are grouped together is somewhat simplistic, but the
+underlying mathematics is correct.</p>
+<p>The first bin starts at the smallest non-sky, non-excluded fiber (usually
+fiber #3) and just keeps adding the next fiber until the desire SNR is
+reached. Fibers are not binned across rows, which ensures that each bin is
+made up only of fibers of one size, but also limits the amount of binning
+that can be done. The major limitation of this method is that the ends of
+rows can often be left with a single, low SNR fiber. For example, if a bin
+is constructed containing fibers 14-16 and fiber 17 (at the end of the
+row) is below the threshold it will not be added to the previous bin and
+instead will make up a single bin with low a low SNR. This should be easy
+to fix but in practice it doesn&#8217;t cause that much of an issue so I just
+haven&#8217;t done it.</p>
+<p>The spectrum for each bin is an average of all the contributing fibers,
+weighted by each individual&#8217;s SNR^2. The corresponding error bin is a sum
+in quadrature, weighted in the same way.</p>
+<p>The history of each bin is recorded in the output FITS header using two keywords:</p>
+<blockquote>
+<div><p><strong>BINXXXF</strong> The fibers that went into bin XXX</p>
+<dl class="docutils">
+<dt><strong>BINXXXP</strong> The position (in arcsec) of the center of bin XXX. This is</dt>
+<dd>the <em>unweighted</em> average of the centers of the contributing fibers.</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>datafile</strong> : str</p>
+<blockquote>
+<div><p>The name of a multispec FITS file that you want to bin</p>
+</div></blockquote>
+<p><strong>errfile</strong> : str</p>
+<blockquote>
+<div><p>The name of a multispec FITS file containing error vectors corresponding to the datafile</p>
+</div></blockquote>
+<p><strong>SNR</strong> : float</p>
+<blockquote>
+<div><p>The minimum SNR in each bin</p>
+</div></blockquote>
+<p><strong>outputfile</strong> : str</p>
+<blockquote>
+<div><p>The base name of the binned spectral and error arrays. The results
+will be called OUTPUTFILE.ms.fits and OUTPUTFILE.me.fits.</p>
+</div></blockquote>
+<p><strong>waverange</strong> : list (default: None)</p>
+<blockquote>
+<div><p>A 2 element list containing the minimum and maximum wavelengths
+to consider <em>for the SNR calculations</em>. Regardless of this parameter
+the final output will span the same wavelength range as the input
+files.</p>
+</div></blockquote>
+<p><strong>exclude</strong> : list (default: [])</p>
+<blockquote>
+<div><p>A list containing fibers to exlcude from binning. Sky fibers are
+automatically excluded and fiber numbers start at 1.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>finalf</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>Array with shape NBINS x NWAVE containing the binned data</p>
+</div></blockquote>
+<p><strong>finatle</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>Array with same shape as finalf containing the errors on the binned data</p>
+</div></blockquote>
+<p><strong>fibdict</strong> : dict</p>
+<blockquote class="last">
+<div><p>Dictionary of questionable usefulness that contains information about
+which fibers went into each bin. The keys are ROW_BIN and the entries
+are a list of the fibers that went into that bin (e.g., &#8216;1_2&#8217; for the
+second bin in the first row).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_bin.compute_SN">
+<code class="descclassname">GradPak_bin.</code><code class="descname">compute_SN</code><span class="sig-paren">(</span><em>signal</em>, <em>noise</em>, <em>idx=None</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_bin.compute_SN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given signal and noise vectors, compute the SNR (possibly over a specific range).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>signal</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>A 1D vector of data values</p>
+</div></blockquote>
+<p><strong>noise</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>A 1D vector of error values</p>
+</div></blockquote>
+<p><strong>idx</strong> : numpy.ndarray (default=None)</p>
+<blockquote>
+<div><p>A 1D vector containing the index values of a sub region used to
+compute the SNR</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>SNR</strong> : float</p>
+<blockquote class="last">
+<div><p>The signal to noise. Computed simply as &lt;signal/noise&gt;</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_bin.create_bin">
+<code class="descclassname">GradPak_bin.</code><code class="descname">create_bin</code><span class="sig-paren">(</span><em>fstack</em>, <em>estack</em>, <em>snstack</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_bin.create_bin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weight and combine data and errors into new bins.</p>
+<p>The weights are simply SNR^2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fstack</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>A NxM array where of data values N is the number of fibers to add to
+the bin and M is the number of wavelength channels. Generally the 1st
+element of this array is the current bin, not an individual fiber.</p>
+</div></blockquote>
+<p><strong>estack</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>The errors corresponding to fstack. Should be the same shape as fstack</p>
+</div></blockquote>
+<p><strong>snstack</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>Array containing the SNR of each of the N entries in fstack</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>newbin</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>Array of length M containing the weighted average of fstack</p>
+</div></blockquote>
+<p><strong>newerr</strong> : numpy.ndarray</p>
+<blockquote class="last">
+<div><p>Array of length M containing the errors on newbin. Errors are combined
+in weighted quadrature.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_bin.create_locations">
+<code class="descclassname">GradPak_bin.</code><code class="descname">create_locations</code><span class="sig-paren">(</span><em>binfile, galcenter=[35.637962, 42.347629], ifucenter=[35.637962, 42.347629], reffiber=105, galpa=293.3, ifupa=295.787, kpc_scale=0.0485</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_bin.create_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a binned data file, creat a list of bin locations, relative to a galactic center.</p>
+<p>The function is designed to give physical meaning to the location of each
+bin created by <a class="reference internal" href="#GradPak_bin.bin" title="GradPak_bin.bin"><code class="xref py py-func docutils literal"><span class="pre">bin()</span></code></a>. For each bin found in the FITS header it
+computes physical coordinates in both arcsec and kpc. This method was
+written with a 2D projection of cylindrical coordinates in mind (r,z), but
+the user is free to fully define the location and meaning of the
+coordinate system through keyword options.</p>
+<p>The output is a text file containig the location of each bin in the
+desired coordinate system.</p>
+<p>The current defaults are for NGC 891 and WIYN proposal 14B-0456. You
+should probably change them.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>binfile</strong> : str</p>
+<blockquote>
+<div><p>The name of a FITS file produced by <a class="reference internal" href="#GradPak_bin.bin" title="GradPak_bin.bin"><code class="xref py py-func docutils literal"><span class="pre">bin()</span></code></a></p>
+</div></blockquote>
+<p><strong>galcenter</strong> : list, optional</p>
+<blockquote>
+<div><p>A list containing the [RA,DEC] coordinates of the center of the
+coordinate system. The units are decimal degrees.</p>
+</div></blockquote>
+<p><strong>ifucenter</strong> : list, optional</p>
+<blockquote>
+<div><p>A list containing the center of the fiber specified in
+<strong>reffiber</strong>. Units are decimal degrees. This is usually the
+coordinates of your GradPak pointing.</p>
+</div></blockquote>
+<p><strong>reffiber</strong> : int, optional</p>
+<blockquote>
+<div><p>The <em>fiber</em> number whoes coordinates are given in <strong>ifucenter</strong>. This
+is generally the fiber you used to align GradPak during observations.</p>
+</div></blockquote>
+<p><strong>galpa</strong> : float, optional</p>
+<blockquote>
+<div><p>The position angle of the desired coordinate system. This angle
+defines rotation of the horizontal axis relative to the sky.</p>
+</div></blockquote>
+<p><strong>ifupa</strong> : float, optional</p>
+<blockquote>
+<div><p>The position angle of GradPak. This is defined as an absolute PA,
+relative to North, <em>not</em> to the defined coordinate system. This is
+generally the PA you entered during GradPak observations.</p>
+</div></blockquote>
+<p><strong>kpc_scale</strong> : float, optional</p>
+<blockquote>
+<div><p>kpc/arcsec of the object in question</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">None :</p>
+<blockquote class="last">
+<div><p>The result is file with the suffix &#8220;locations.dat&#8221; that contains
+information about the location in the user defined coordinates of each
+aperture (bin). Coordinates are given in arcsec and kpc. Note that the
+reported &#8220;size&#8221; is the size of the fibers that went into each bin, not
+the size of the bin itself. This is admittedly confusing.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">GradPak_bin</a><ul>
+<li><a class="reference internal" href="#useful-example">Useful Example</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="GradPak_skysub.html"
+                        title="previous chapter">GradPak_skysub</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="GradPak_scat.html"
+                        title="next chapter">GradPak_scat</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="GradPak_scat.html" title="GradPak_scat"
+             >next</a></li>
+        <li class="right" >
+          <a href="GradPak_skysub.html" title="GradPak_skysub"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Arthur Eigenbrot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4a0+.
+    </div>
+  </body>
+</html>
