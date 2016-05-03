@@ -26,6 +26,7 @@ GradPak API
 
    GradPak_flatfu.rst
    GradPak_skysub.rst
+   GradPak_bin.rst
    GradPak_scat.rst
 
 ..
