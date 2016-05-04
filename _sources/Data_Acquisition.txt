@@ -162,5 +162,70 @@ enough just to get through the **dohydra** step; flux calibration can wait.
 Calibrations
 ============
 
+Calibration frames are almost more important than the actual data; without
+them you entire run will be worthless. At the very least you need:
+
+ Darks: 10 darks per scientific exposure time per night is a good number. It's
+ OK if you can't them every single night, but you should try to. Because the
+ exposure times are long, it's common to run darks during the day while you're
+ sleeping (set it up at the end of the night).
+
+ Zeros: Get a ton of these. Waiting for twilight? Grab some zeros! Showed up
+ before the OA? Grab some zeros! Get lots and lots of zeros.
+
+Flats
+-----
+
+Getting proper flats with GradPak is different than other IFUs because the
+multi-pitch nature of GradPak poses some unique light-collection
+challenges. You may find that your spectrograph setup puts you in a position
+where you can't get enough signal in the smaller fibers without saturating the
+large fibers:
+
+.. figure:: figs/flat4s.png
+   :height: 500px
+   :align: center
+   :alt: flat with overexposed large fibers
+	 
+   This flat has good signal in the smallest fiber (right side), but all of
+   the large fibers are totally saturated. Not good.
+
+If this is the case then you'll need to take multiple flat exposures to get
+all fiber sizes with good signal. Deciding on what exposure times can be a
+little tricky but as a generaly rule you want to always look at the brightest
+part of the spectrum in the large fibers and the dimmest part of the spectrum
+in the small fibers. To say it a different way, set your short exposure time
+flats so that the large fibers are at the upper end of the linear regime in
+the brightest part of the spectrum. Similarly, set your long exposure time
+flats so that you get a good number of counts in the dimmest part of the
+spectrum with the smallest fibers.
+
+.. figure:: figs/flat1s.png
+   :height: 500px
+   :align: center
+   :alt: flat with underexposed small fibers
+
+   This flat has good signal in the large fibers and does not saturate where
+   the last image did (above), but there is not enough signal in the small
+   fibers.
+
+It is important to note that the non-linear regime is not the same as
+saturating the detector; you encounter non-linearity before you saturate. This
+threshold varies with gain and binning, but an easy way to check is divide two
+flats with different exposure times. The resulting image should be constant
+everywhere with the value of the ratio of the exposures times. In places where
+there is structure you are in the non-linear regime.
+
+In my limited experience it seems like the 2" and 3" fibers behave as the
+"small" fibers and the 4", 5", and 6" fibers are the "large" fibers.
+
+Having said all this, make sure you actually need multiple exposure times
+before you go through the trouble. You might get lucky with your setup and be
+able to get good signal in all fibers with a single exposure time. If so,
+that's awesome.
+
+Get a statistically significant number of flats for each exposure time you
+need. That means at least 10.
+
 Standard Stars
 ==============

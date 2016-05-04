@@ -186,6 +186,58 @@ enough just to get through the <strong>dohydra</strong> step; flux calibration c
 </div>
 <div class="section" id="calibrations">
 <h2>Calibrations<a class="headerlink" href="#calibrations" title="Permalink to this headline">¶</a></h2>
+<p>Calibration frames are almost more important than the actual data; without
+them you entire run will be worthless. At the very least you need:</p>
+<blockquote>
+<div><p>Darks: 10 darks per scientific exposure time per night is a good number. It&#8217;s
+OK if you can&#8217;t them every single night, but you should try to. Because the
+exposure times are long, it&#8217;s common to run darks during the day while you&#8217;re
+sleeping (set it up at the end of the night).</p>
+<p>Zeros: Get a ton of these. Waiting for twilight? Grab some zeros! Showed up
+before the OA? Grab some zeros! Get lots and lots of zeros.</p>
+</div></blockquote>
+<div class="section" id="flats">
+<h3>Flats<a class="headerlink" href="#flats" title="Permalink to this headline">¶</a></h3>
+<p>Getting proper flats with GradPak is different than other IFUs because the
+multi-pitch nature of GradPak poses some unique light-collection
+challenges. You may find that your spectrograph setup puts you in a position
+where you can&#8217;t get enough signal in the smaller fibers without saturating the
+large fibers:</p>
+<div class="figure align-center" id="id4">
+<a class="reference internal image-reference" href="_images/flat4s.png"><img alt="flat with overexposed large fibers" src="_images/flat4s.png" style="height: 500px;" /></a>
+<p class="caption"><span class="caption-text">This flat has good signal in the smallest fiber (right side), but all of
+the large fibers are totally saturated. Not good.</span></p>
+</div>
+<p>If this is the case then you&#8217;ll need to take multiple flat exposures to get
+all fiber sizes with good signal. Deciding on what exposure times can be a
+little tricky but as a generaly rule you want to always look at the brightest
+part of the spectrum in the large fibers and the dimmest part of the spectrum
+in the small fibers. To say it a different way, set your short exposure time
+flats so that the large fibers are at the upper end of the linear regime in
+the brightest part of the spectrum. Similarly, set your long exposure time
+flats so that you get a good number of counts in the dimmest part of the
+spectrum with the smallest fibers.</p>
+<div class="figure align-center" id="id5">
+<a class="reference internal image-reference" href="_images/flat1s.png"><img alt="flat with underexposed small fibers" src="_images/flat1s.png" style="height: 500px;" /></a>
+<p class="caption"><span class="caption-text">This flat has good signal in the large fibers and does not saturate where
+the last image did (above), but there is not enough signal in the small
+fibers.</span></p>
+</div>
+<p>It is important to note that the non-linear regime is not the same as
+saturating the detector; you encounter non-linearity before you saturate. This
+threshold varies with gain and binning, but an easy way to check is divide two
+flats with different exposure times. The resulting image should be constant
+everywhere with the value of the ratio of the exposures times. In places where
+there is structure you are in the non-linear regime.</p>
+<p>In my limited experience it seems like the 2&#8221; and 3&#8221; fibers behave as the
+&#8220;small&#8221; fibers and the 4&#8221;, 5&#8221;, and 6&#8221; fibers are the &#8220;large&#8221; fibers.</p>
+<p>Having said all this, make sure you actually need multiple exposure times
+before you go through the trouble. You might get lucky with your setup and be
+able to get good signal in all fibers with a single exposure time. If so,
+that&#8217;s awesome.</p>
+<p>Get a statistically significant number of flats for each exposure time you
+need. That means at least 10.</p>
+</div>
 </div>
 <div class="section" id="id1">
 <h2>Standard Stars<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
@@ -209,7 +261,10 @@ enough just to get through the <strong>dohydra</strong> step; flux calibration c
 <li><a class="reference internal" href="#ability-to-quick-reduce-data">Ability to Quick Reduce Data</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#calibrations">Calibrations</a></li>
+<li><a class="reference internal" href="#calibrations">Calibrations</a><ul>
+<li><a class="reference internal" href="#flats">Flats</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#id1">Standard Stars</a></li>
 </ul>
 </li>
