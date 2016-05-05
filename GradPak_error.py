@@ -1,62 +1,85 @@
 #! /usr/bin/python
 #
-##################################################
-#
-#
-# This script is used to produce error images by propagating a raw error
-# (.sig) file through the standard GradPak pipeline. The raw error image is
-# typically something produced by the IRAF task rawimerr, which is part of
-# Matt Bershady's ifupkg.
-#
-# The calling syntax is easy:
-#
-# > python GradPak_error.py RAW_IMAGE.sig.fits
-#
-# The result of which will be a file called RAW_IMAGE.me_rf_lin.fits.
-#
-# The reduction steps that are performed, along with the suffix produced by
-# that step are:
-#
-# 1. Aperture extraction and flat-field calibration using DOHYDRA (.me.fits)
-# 2. Dispersion correction using DISPCOR (.me_lin.fits)
-# 3. Flux calibration using CALIBRATE (.me_rf_lin.fits)
-#
-# Note that sky subtraction is not performed (see below).
-#
-# For this script to work properly all the parameters for DOHYDRA and
-# CALIBRATE must be set (in IRAF) exactly as they were when the raw data
-# images were reduced. In other words, the values of, e.g., dohydra.flat,
-# dohydra.apidtab, or calibrate.sensiti must be the same as when your data
-# were reduced. The typical usage is to reduce your GradPak data through flux
-# calibration and then simply run rawimerr followed by this script to produce
-# a final error image in two easy steps.
-#
-# Assumptions and Simplifications:
-#
-# During the error propagation a few simplifying assumptions are made:
-#
-# 1. The flat error is negligible compared to the object error. This
-#    assumption is strengthened by the fact that during flat-field corrections
-#    the error term from the flat itself depends on the inverse of the square
-#    of the flat signal and can therefore be thought of as a second order
-#    correction. This assumption is consistent the ifupkg.mkmes task.
-#
-# 2. The dispersion solution is essentially linear. This allows a much simpler
-#    treating of the error propagation resulting from the DISPCOR task and
-#    should be valid for most GradPak spectra. This assuption makes this
-#    script less accurate than ifupkg.dispcor_err, but the difference should
-#    be negligable.
-#
-# 3. The error is not propagated through the sky subtraction step. This is
-#    akin to assuming the combined sky fibers have negligable error compared
-#    to the object fibers and is probably the most egregious assumption made
-#    by this scipt. It will probably be fixed sometime in the future.
-#
 # History:
 #      v1 - A. Eigenbrot Jan. 2015
 #
 ##################################################
 
+"""
+*************
+GradPak_error
+*************
+
+This script is used to produce error images by propagating a raw error
+(.sig) file through the standard GradPak pipeline. The raw error image is
+typically something produced by the IRAF task **rawimerr**, which is part of
+Matt Bershady's ifupkg.
+
+The calling syntax is easy::
+
+ > python GradPak_error.py RAW_IMAGE.sig.fits
+
+The result of which will be a file called RAW_IMAGE.me_rf_lin.fits.
+
+The reduction steps that are performed, along with the suffix produced by
+that step are:
+
+ 1. Aperture extraction and flat-field calibration using **dohydra** (.me.fits)
+ 2. Dispersion correction using **dispcor** (.me_lin.fits)
+ 3. Flux calibration using **calibrate** (.me_rf_lin.fits)
+
+Note that sky subtraction is not performed (see below).
+
+For this script to work properly all the parameters for **dohydra** and
+**calibrate** must be set (in IRAF) exactly as they were when the raw data
+images were reduced. In other words, the values of, e.g., *dohydra.flat,
+dohydra.apidtab*, or *calibrate.sensiti* must be the same as when your data
+were reduced. The typical usage is to reduce your GradPak data through flux
+calibration and then simply run rawimerr followed by this script to produce
+a final error image in two easy steps.
+
+Assumptions and Simplifications:
+
+During the error propagation a few simplifying assumptions are made:
+
+ 1. The flat error is negligible compared to the object error. This
+    assumption is strengthened by the fact that during flat-field corrections
+    the error term from the flat itself depends on the inverse of the square
+    of the flat signal and can therefore be thought of as a second order
+    correction. This assumption is consistent the **ifupkg.mkmes** task.
+
+ 2. The dispersion solution is essentially linear. This allows a much simpler
+    treating of the error propagation resulting from the **dispcor** task and
+    should be valid for most GradPak spectra. This assuption makes this script
+    less accurate than **ifupkg.dispcor_err**, but the difference should be
+    negligable.
+
+ 3. The error is not propagated through the sky subtraction step. This is
+    akin to assuming the combined sky fibers have negligable error compared
+    to the object fibers and is probably the most egregious assumption made
+    by this scipt. It will probably be fixed sometime in the future.
+
+Combining Error Images
+----------------------
+
+The is a second, somewhat secret usage for this script: combining two or more
+error spectra into a single file. This is used, for example, when combining
+data from the same pointing taken across multiple nights. For each night you
+would reduce the data and compute an error spectrum as described above, then
+you combine all individual errors together with a command like this::
+
+ > python GradPak_error.py OUTPUT_IMAGE.me_rf_lin.fits ERROR1.me_rf_lin.fits ERROR2.me_rf_lin... weights.txt
+
+The first argument is assumed to be the output image. If the following
+arguments have a ".fits" extension then they are combined together. A final
+argument containing the relative weights of the input images is also required.
+
+The output image is the weighted quadrature sum of the input images.
+
+Functions
+---------
+
+"""
 import glob
 import sys
 import os
@@ -88,8 +111,7 @@ else:
 
 
 def pow_image(inputname, outputname, power):
-    '''
-    Take an input image, raise all of its pixesl to the specified power and
+    '''Take an input image, raise all of its pixesl to the specified power and
     write the output image.
     '''
     print 'raising {} to power of {}'.format(inputname,power)
@@ -100,9 +122,11 @@ def pow_image(inputname, outputname, power):
     return
 
 def create_tmps(errname, flatname):
-    '''
-    Set up some temporary, squared version of the raw error and flat
-    files. These are then used as inputs to dohydra.
+    '''Set up some temporary, squared versions of the raw error and flat
+    files. 
+
+    These are then used as inputs to dohydra. In this way all the correct,
+    first principle error propagation can proceed.
     '''
     sq_errname = 'tmp_sq{}'.format(errname)
     sq_flatname = 'tmp_sq{}'.format(flatname)
@@ -113,9 +137,10 @@ def create_tmps(errname, flatname):
     return sq_errname, sq_flatname
 
 def find_msname(rawname):
-    '''
-    Given a raw file (that was input to dohydra), find the name that dohydra
-    gave its processed result. This is used to get to correct naming
+    '''Find the name of **dohydra** output.
+
+    Given a raw file (that was input to dohydra), we find the name that
+    dohydra gave its processed result. This is used to get to correct naming
     convention for the master flat as the specific type of IRAF scrunching can
     vary from system to system.
     '''
@@ -136,31 +161,36 @@ def find_msname(rawname):
         return flist[0]
 
 def dohydra_err(errname):
-    '''
+    '''Propagate errors through **dohydra**
+
     Extract apertures, perform flat correction, and apply wavelength solution
     header values to the raw (.sig) error file.
     
     Errors are propagated assuming that the raw flat errors are minimal. This
     causes the full error term,
 
-    dMS' = \sqrt( (dF*MS/F**2)**2 + (dMS/F)**2 ),
+    .. math::
+       \delta S' = \sqrt{(\delta F*S/F^2)^2 + (\delta S/F)^2 },
 
     to reduce to
 
-    dMS' = dMS/F,
+    .. math::
+       \delta S' = \delta S/F,
 
-    where MS is the extracted, .ms file, F is the flat and d represents errors
+    where S is the extracted, .ms file, F is the flat and d represents errors
     on that particular image. The error on a particular aperture in the .ms
     file is simply
 
-    dMS = \sqrt( \sum_i(dI**2) ),
+    .. math::
+       \delta S = \sqrt{\sum_i(\delta I^2)},
 
-    where dI is the raw error (.sig) file and the sum_i is over all columns
+    where :math:`\delta I` is the raw error (.sig) file and the sum is over all columns
     used in a fiber.
 
-    Given the above expressions the final error (dMS') is achieved by simply
-    passing dI**2 and F**2 into dohydra and taking the square root of the
-    result.
+    Given the above expressions the final error (:math:`\delta S'`) is achieved by
+    simply passing :math:`\delta I^2` and :math:`F^2` into dohydra and taking
+    the square root of the result.
+
     '''
     #Save the OG flat so we can set it back once we're done with the squared
     #flat
@@ -205,21 +235,22 @@ def dohydra_err(errname):
     return final_image
 
 def dispcor_err(msfile):
-    '''
+    '''Propagate error through wavelength rectification.
+
     Read wavelength solution information from the FITS header and resample an
     image to a linear wavelength scale.
 
     The error is propagated by simply passing a squared .ms.fits file to
-    DISPCOR and taking the square root of the result. This method makes the
+    **dispcor** and taking the square root of the result. This method makes the
     following assumptions:
 
-    1. The wavelength solution in the header is close enough to linear that
-       spline3 interpolation used by DISPCOR essentially becomes a linear
-       interpolation. This means the error on each output pixel is just the
-       quadrature sum of the errors of the input pixels that went into that
-       output pixel (divided by the number of pixels).
+     1. The wavelength solution in the header is close enough to linear that
+        spline3 interpolation used by DISPCOR essentially becomes a linear
+        interpolation. This means the error on each output pixel is just the
+        quadrature sum of the errors of the input pixels that went into that
+        output pixel (divided by the number of pixels).
 
-    2. Any effects of fractional pixels is minimal.
+     2. Any effects of fractional pixels is minimal.
     '''
     tmpname = 'tmp_sq{}'.format(msfile)
     outputname =  msfile.replace('me.fits','me_lin.fits')
@@ -236,8 +267,7 @@ def dispcor_err(msfile):
     return outputname
 
 def calibrate_err(mefile):
-    '''
-    Apply a sensitivity function to a linearized multispectrum file.
+    '''Apply a sensitivity function to a linearized multispectrum file.
     
     The error is propagated simply by dividing it by the sensitivity
     function. This makes the assumption that there is no error in the
@@ -255,27 +285,28 @@ def calibrate_err(mefile):
     return outputname
 
 def combine_err(spectra_list, weight_file, outputname):
-    '''
-    Combine two or more multispec error images using SCOMBINE.
+    '''Combine two or more multispec error images using **scombine**.
 
     The input weight file should be the weights used to combine the actual
     data spectra. Error propagation is performed by
 
-    dC = \sqrt( \sum_i((E_i/w_i)**2)),
+    .. math::
+       \delta C = \sqrt{\sum_i(E_i/w_i)^2},
 
-    where E is an error spectrum (.me_rf_lin.fits), w is the weight of the
-    corresponding data spectrum, and dC is the error on the combined data
-    spectra.
+    where :math:`E` is an error spectrum (.me_rf_lin.fits), :math:`w` is the
+    weight of the corresponding data spectrum, and dC is the error on the
+    combined data spectra.
 
-    Note that internally (in both this function and SCOMBINE) the weights are
-    normalized to a unity sum, which avoids the need to keep track of the sum
-    of the squares of the weights.
+    Note that internally (in both this function and **scombine**) the weights
+    are normalized to a unity sum, which avoids the need to keep track of the
+    sum of the squares of the weights.
 
     When combining images that are not on exactly the same wavelength grid
-    SCOMBINE will interpolate all spectra to have the same wavelengths as the
-    first image. A simplifying assumption made by this function is that the
-    interpolation is essentially linear. See the documentation for dispcor_err
-    for more information.
+    **scombine** will interpolate all spectra to have the same wavelengths as
+    the first image. A simplifying assumption made by this function is that
+    the interpolation is essentially linear. See the documentation for
+    :func:`dispcor_err` for more information.
+
     '''
     print 'Combining:'
     for s in spectra_list: print '\t{}'.format(s)
@@ -308,7 +339,8 @@ def combine_err(spectra_list, weight_file, outputname):
     return 0
                   
 def propagate(errimage):
-    '''
+    '''The main flow function.
+
     Take a raw error (.sig) image and run it through aperture extraction,
     flat-fielding, linearization, and flux calibration.
     '''
@@ -330,7 +362,7 @@ def parse_input(inputlist):
     '''
     Parse the command line arguments provided by the user, figure out which
     operation is desired (propagation or combination), and return the
-    necessary functino arguments.
+    necessary function arguments.
     '''
     if len(inputlist) == 1:
         if '.sig' not in inputlist[0]:

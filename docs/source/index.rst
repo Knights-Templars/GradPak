@@ -28,6 +28,7 @@ GradPak API
    GradPak_skysub.rst
    GradPak_bin.rst
    GradPak_scat.rst
+   GradPak_error.rst
 
 ..
    Indices
