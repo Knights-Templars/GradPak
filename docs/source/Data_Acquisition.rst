@@ -229,3 +229,74 @@ need. That means at least 10.
 
 Standard Stars
 ==============
+
+Taking standar star observations is a relatively straight forward task; simply
+park the star on one the fibers and expose until you get good signal. I am
+often surprised how long it takes to get the proper number of photons, but a
+minute or two is pretty typical. In a perfect world you would get light down
+every single fiber so you could later do a fiber-by-fiber flux calibration,
+but in practice you'll probably have to settle with getting a few fibers each
+night.
+
+**HERE'S WHERE IT GETS BAD.** The smallest GradPak fibers are really small. So
+small, in fact, that they get affected by differential atmospheric refraction
+(DAR). DAR causes light of different wavelengths to have slightly different
+focus positions at the telescope focal plane. For older *Paks this wasn't a
+problem because the fibers were so big that all the light from each on-sky
+position fell within the same fiber. Unfortunately, the 2" and 3" fibers are
+small enough (~200 and 300 microns, respectively. AKA, pretty damn small)
+that DAR causes some light to be lost off the edge of the fiber. Cruicially
+there is a spectrum to this lost light (that's the very nature of DAR). In
+other words, you might capture all of the light redward of 5000 AA, but start
+loosing light off the side of the fiber at bluer wavelengths.
+
+For observations of extended objects this isn't that much of an issue. DAR
+just acts as (small) smearing kernel between you and the object. The light
+that is lost from one position on the sky is replaced by light added from the
+position right next to it.
+
+The problem is that point sources get pretty messed up by DAR. The (wavelength
+dependent) light they loose does not get replaced and the end result is an
+artifical "DAR" spectrum imposed on top of the actual spectrum.
+
+.. figure:: figs/DAR.png
+   :height: 500px
+   :align: center
+   :alt: the effects of DAR on standard star spectrum as a function of fiber size
+
+   A standard star observed through multiple fiber sizes. For this observation
+   GradPak was dragged across the standard star to sample all 5 fiber
+   sizes. The effects of DAR are clearly visible as the supression of the blue
+   end of the spectrum in the 3" and 2" fibers (and a little bit in the 4"
+   fibers).
+
+Yikes, imagine if you used the 2" fiber above to do flux calibration. Your
+data below 5000 AA would be completely wrong. Again, and this is very
+important, DAR only affects point source observations, so it is not OK to
+compute a "correction" from the above plot to apply to your small fibers.
+
+So what can you do? This answer will vary based on exactly what you need
+standard stars for, but I can tell you what I did. Every night I took standard
+star observations in 3-4 6" fibers, changing the specific fibers each
+night. In this way I built up a collection of standard star observations for
+all of the fibers I know for a fact do not suffer from DAR. I then crossed my
+fingers and applied the resulting flux calibrations to all the rest of the
+fibers in the array. This is not so crazy: a good flat field calibration will
+remove the *relative* spectral differences between the fibers, then a single
+fiber (or group of fibers) can provide the *absolute* spectral calibration for
+the entire IFU.
+
+It's important to note that for my actual observations I *did not* drag the
+star across the IFU (as is common for many other IFUs). For each standard star
+frame I placed the star in the center of a 6" and left it there the whole
+time. If the star is near the edge of a large fiber DAR can still caused some
+of the light to be lost.
+
+Finally, I should note that it *should* be possible to beat the effects of DAR
+with some clever maneuvering. DAR disperses the light along a line normal to
+the horizon, i.e., azimuth. It should therefore be possible to drag the star
+exactly along the azimuth axis so that any light lost at time *t* is regained
+at *t* + epsilon. As long as the star starts and ends well off the IFU all the
+light should be captured by all the fibers. I spent a twilight trying this
+during my run and was uncessesful, which is not to say the method cannot
+work. If you're feeling adventerous, go for it.
