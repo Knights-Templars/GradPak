@@ -1,0 +1,287 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>GradPak_error &mdash; GradPak 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GradPak 1.0 documentation" href="index.html" />
+    <link rel="prev" title="GradPak_scat" href="GradPak_scat.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="GradPak_scat.html" title="GradPak_scat"
+             accesskey="P">previous</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-GradPak_error"></span><div class="section" id="gradpak-error">
+<h1>GradPak_error<a class="headerlink" href="#gradpak-error" title="Permalink to this headline">¶</a></h1>
+<p>This script is used to produce error images by propagating a raw error
+(.sig) file through the standard GradPak pipeline. The raw error image is
+typically something produced by the IRAF task <strong>rawimerr</strong>, which is part of
+Matt Bershady&#8217;s ifupkg.</p>
+<p>The calling syntax is easy:</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt; python GradPak_error.py RAW_IMAGE.sig.fits
+</pre></div>
+</div>
+<p>The result of which will be a file called RAW_IMAGE.me_rf_lin.fits.</p>
+<p>The reduction steps that are performed, along with the suffix produced by
+that step are:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Aperture extraction and flat-field calibration using <strong>dohydra</strong> (.me.fits)</li>
+<li>Dispersion correction using <strong>dispcor</strong> (.me_lin.fits)</li>
+<li>Flux calibration using <strong>calibrate</strong> (.me_rf_lin.fits)</li>
+</ol>
+</div></blockquote>
+<p>Note that sky subtraction is not performed (see below).</p>
+<p>For this script to work properly all the parameters for <strong>dohydra</strong> and
+<strong>calibrate</strong> must be set (in IRAF) exactly as they were when the raw data
+images were reduced. In other words, the values of, e.g., <em>dohydra.flat,
+dohydra.apidtab</em>, or <em>calibrate.sensiti</em> must be the same as when your data
+were reduced. The typical usage is to reduce your GradPak data through flux
+calibration and then simply run rawimerr followed by this script to produce
+a final error image in two easy steps.</p>
+<p>Assumptions and Simplifications:</p>
+<p>During the error propagation a few simplifying assumptions are made:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>The flat error is negligible compared to the object error. This
+assumption is strengthened by the fact that during flat-field corrections
+the error term from the flat itself depends on the inverse of the square
+of the flat signal and can therefore be thought of as a second order
+correction. This assumption is consistent the <strong>ifupkg.mkmes</strong> task.</li>
+<li>The dispersion solution is essentially linear. This allows a much simpler
+treating of the error propagation resulting from the <strong>dispcor</strong> task and
+should be valid for most GradPak spectra. This assuption makes this script
+less accurate than <strong>ifupkg.dispcor_err</strong>, but the difference should be
+negligable.</li>
+<li>The error is not propagated through the sky subtraction step. This is
+akin to assuming the combined sky fibers have negligable error compared
+to the object fibers and is probably the most egregious assumption made
+by this scipt. It will probably be fixed sometime in the future.</li>
+</ol>
+</div></blockquote>
+<div class="section" id="combining-error-images">
+<h2>Combining Error Images<a class="headerlink" href="#combining-error-images" title="Permalink to this headline">¶</a></h2>
+<p>The is a second, somewhat secret usage for this script: combining two or more
+error spectra into a single file. This is used, for example, when combining
+data from the same pointing taken across multiple nights. For each night you
+would reduce the data and compute an error spectrum as described above, then
+you combine all individual errors together with a command like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt; python GradPak_error.py OUTPUT_IMAGE.me_rf_lin.fits ERROR1.me_rf_lin.fits ERROR2.me_rf_lin... weights.txt
+</pre></div>
+</div>
+<p>The first argument is assumed to be the output image. If the following
+arguments have a &#8221;.fits&#8221; extension then they are combined together. A final
+argument containing the relative weights of the input images is also required.</p>
+<p>The output image is the weighted quadrature sum of the input images.</p>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="GradPak_error.calibrate_err">
+<code class="descclassname">GradPak_error.</code><code class="descname">calibrate_err</code><span class="sig-paren">(</span><em>mefile</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_error.calibrate_err" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply a sensitivity function to a linearized multispectrum file.</p>
+<p>The error is propagated simply by dividing it by the sensitivity
+function. This makes the assumption that there is no error in the
+sensitivity function itself.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_error.combine_err">
+<code class="descclassname">GradPak_error.</code><code class="descname">combine_err</code><span class="sig-paren">(</span><em>spectra_list</em>, <em>weight_file</em>, <em>outputname</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_error.combine_err" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine two or more multispec error images using <strong>scombine</strong>.</p>
+<p>The input weight file should be the weights used to combine the actual
+data spectra. Error propagation is performed by</p>
+<div class="math">
+\[\delta C = \sqrt{\sum_i(E_i/w_i)^2},\]</div>
+<p>where <span class="math">\(E\)</span> is an error spectrum (.me_rf_lin.fits), <span class="math">\(w\)</span> is the
+weight of the corresponding data spectrum, and dC is the error on the
+combined data spectra.</p>
+<p>Note that internally (in both this function and <strong>scombine</strong>) the weights
+are normalized to a unity sum, which avoids the need to keep track of the
+sum of the squares of the weights.</p>
+<p>When combining images that are not on exactly the same wavelength grid
+<strong>scombine</strong> will interpolate all spectra to have the same wavelengths as
+the first image. A simplifying assumption made by this function is that
+the interpolation is essentially linear. See the documentation for
+<a class="reference internal" href="#GradPak_error.dispcor_err" title="GradPak_error.dispcor_err"><code class="xref py py-func docutils literal"><span class="pre">dispcor_err()</span></code></a> for more information.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_error.create_tmps">
+<code class="descclassname">GradPak_error.</code><code class="descname">create_tmps</code><span class="sig-paren">(</span><em>errname</em>, <em>flatname</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_error.create_tmps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up some temporary, squared versions of the raw error and flat
+files.</p>
+<p>These are then used as inputs to dohydra. In this way all the correct,
+first principle error propagation can proceed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_error.dispcor_err">
+<code class="descclassname">GradPak_error.</code><code class="descname">dispcor_err</code><span class="sig-paren">(</span><em>msfile</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_error.dispcor_err" title="Permalink to this definition">¶</a></dt>
+<dd><p>Propagate error through wavelength rectification.</p>
+<p>Read wavelength solution information from the FITS header and resample an
+image to a linear wavelength scale.</p>
+<p>The error is propagated by simply passing a squared .ms.fits file to
+<strong>dispcor</strong> and taking the square root of the result. This method makes the
+following assumptions:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>The wavelength solution in the header is close enough to linear that
+spline3 interpolation used by DISPCOR essentially becomes a linear
+interpolation. This means the error on each output pixel is just the
+quadrature sum of the errors of the input pixels that went into that
+output pixel (divided by the number of pixels).</li>
+<li>Any effects of fractional pixels is minimal.</li>
+</ol>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_error.dohydra_err">
+<code class="descclassname">GradPak_error.</code><code class="descname">dohydra_err</code><span class="sig-paren">(</span><em>errname</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_error.dohydra_err" title="Permalink to this definition">¶</a></dt>
+<dd><p>Propagate errors through <strong>dohydra</strong></p>
+<p>Extract apertures, perform flat correction, and apply wavelength solution
+header values to the raw (.sig) error file.</p>
+<p>Errors are propagated assuming that the raw flat errors are minimal. This
+causes the full error term,</p>
+<div class="math">
+\[\delta S' = \sqrt{(\delta F*S/F^2)^2 + (\delta S/F)^2 },\]</div>
+<p>to reduce to</p>
+<div class="math">
+\[\delta S' = \delta S/F,\]</div>
+<p>where S is the extracted, .ms file, F is the flat and d represents errors
+on that particular image. The error on a particular aperture in the .ms
+file is simply</p>
+<div class="math">
+\[\delta S = \sqrt{\sum_i(\delta I^2)},\]</div>
+<p>where <span class="math">\(\delta I\)</span> is the raw error (.sig) file and the sum is over all columns
+used in a fiber.</p>
+<p>Given the above expressions the final error (<span class="math">\(\delta S'\)</span>) is achieved by
+simply passing <span class="math">\(\delta I^2\)</span> and <span class="math">\(F^2\)</span> into dohydra and taking
+the square root of the result.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_error.find_msname">
+<code class="descclassname">GradPak_error.</code><code class="descname">find_msname</code><span class="sig-paren">(</span><em>rawname</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_error.find_msname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the name of <strong>dohydra</strong> output.</p>
+<p>Given a raw file (that was input to dohydra), we find the name that
+dohydra gave its processed result. This is used to get to correct naming
+convention for the master flat as the specific type of IRAF scrunching can
+vary from system to system.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_error.main">
+<code class="descclassname">GradPak_error.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_error.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse inputs and run the correct function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_error.parse_input">
+<code class="descclassname">GradPak_error.</code><code class="descname">parse_input</code><span class="sig-paren">(</span><em>inputlist</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_error.parse_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the command line arguments provided by the user, figure out which
+operation is desired (propagation or combination), and return the
+necessary function arguments.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_error.pow_image">
+<code class="descclassname">GradPak_error.</code><code class="descname">pow_image</code><span class="sig-paren">(</span><em>inputname</em>, <em>outputname</em>, <em>power</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_error.pow_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take an input image, raise all of its pixesl to the specified power and
+write the output image.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_error.propagate">
+<code class="descclassname">GradPak_error.</code><code class="descname">propagate</code><span class="sig-paren">(</span><em>errimage</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_error.propagate" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main flow function.</p>
+<p>Take a raw error (.sig) image and run it through aperture extraction,
+flat-fielding, linearization, and flux calibration.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">GradPak_error</a><ul>
+<li><a class="reference internal" href="#combining-error-images">Combining Error Images</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="GradPak_scat.html"
+                        title="previous chapter">GradPak_scat</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="GradPak_scat.html" title="GradPak_scat"
+             >previous</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Arthur Eigenbrot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4a0+.
+    </div>
+  </body>
+</html>
