@@ -108,7 +108,7 @@ NGC891_P6     02:22:35.567 +42:24:04.38 2000
 <p>It is also a good idea to save all your ds9 regions so you can recal them
 later as need. You&#8217;ve also generated a finding chart, which will be handy at
 WIYN. See an example below:</p>
-<div class="figure align-center" id="id4">
+<div class="figure align-center" id="id2">
 <a class="reference internal image-reference" href="_images/finding_chart.png"><img alt="example finding chart" src="_images/finding_chart.png" style="height: 500px;" /></a>
 <p class="caption"><span class="caption-text">A finding chart from proposal 2014B-0456. I&#8217;ve labeled my six GradPak
 pointings for easy identification. The barely visible blue circles are
@@ -149,7 +149,7 @@ KPNO. Nice!</p>
 jump on my two standard stars at the start of the night before moving to my
 galaxy target. This is the kind of planning that only a good airmass chart can
 provide.</p>
-<div class="figure align-center" id="id5">
+<div class="figure align-center" id="id3">
 <a class="reference internal image-reference" href="_images/airchart.png"><img alt="example airmass chart" src="_images/airchart.png" style="width: 500px;" /></a>
 <p class="caption"><span class="caption-text">Airmass chart for December 20th, 2014. Based on this chart I spent from
 19:00 to 20:00 observing my two standard stars (BD282411 and Feige 110)
@@ -203,7 +203,7 @@ multi-pitch nature of GradPak poses some unique light-collection
 challenges. You may find that your spectrograph setup puts you in a position
 where you can&#8217;t get enough signal in the smaller fibers without saturating the
 large fibers:</p>
-<div class="figure align-center" id="id6">
+<div class="figure align-center" id="id4">
 <a class="reference internal image-reference" href="_images/flat4s.png"><img alt="flat with overexposed large fibers" src="_images/flat4s.png" style="height: 500px;" /></a>
 <p class="caption"><span class="caption-text">This flat has good signal in the smallest fiber (right side), but all of
 the large fibers are totally saturated. Not good.</span></p>
@@ -217,7 +217,7 @@ flats so that the large fibers are at the upper end of the linear regime in
 the brightest part of the spectrum. Similarly, set your long exposure time
 flats so that you get a good number of counts in the dimmest part of the
 spectrum with the smallest fibers.</p>
-<div class="figure align-center" id="id7">
+<div class="figure align-center" id="id5">
 <a class="reference internal image-reference" href="_images/flat1s.png"><img alt="flat with underexposed small fibers" src="_images/flat1s.png" style="height: 500px;" /></a>
 <p class="caption"><span class="caption-text">This flat has good signal in the large fibers and does not saturate where
 the last image did (above), but there is not enough signal in the small
@@ -248,16 +248,16 @@ minute or two is pretty typical. In a perfect world you would get light down
 every single fiber so you could later do a fiber-by-fiber flux calibration,
 but in practice you&#8217;ll probably have to settle with getting a few fibers each
 night.</p>
-<p><strong>HERE&#8217;S WHERE IT GETS BAD.</strong> The smallest GradPak fibers are really small. So
+<p>BUT THERE IS A PROBLEM. The smallest GradPak fibers are really small. So
 small, in fact, that they get affected by differential atmospheric refraction
 (DAR). DAR causes light of different wavelengths to have slightly different
-focus positions at the telescope focal plane. For older <a href="#id2"><span class="problematic" id="id3">*</span></a>Paks this wasn&#8217;t a
+focus positions at the telescope focal plane. For older Paks this wasn&#8217;t a
 problem because the fibers were so big that all the light from each on-sky
 position fell within the same fiber. Unfortunately, the 2&#8221; and 3&#8221; fibers are
-small enough (~200 and 300 microns, respectively. AKA, pretty damn small)
-that DAR causes some light to be lost off the edge of the fiber. Cruicially
-there is a spectrum to this lost light (that&#8217;s the very nature of DAR). In
-other words, you might capture all of the light redward of 5000 AA, but start
+small enough (~200 and 300 microns, respectively. AKA, pretty damn small) that
+DAR causes some light to be lost off the edge of the fiber. Cruicially there
+is a spectrum to this lost light (that&#8217;s the very nature of DAR). In other
+words, you might capture all of the light redward of 5000 AA, but start
 loosing light off the side of the fiber at bluer wavelengths.</p>
 <p>For observations of extended objects this isn&#8217;t that much of an issue. DAR
 just acts as (small) smearing kernel between you and the object. The light
@@ -266,7 +266,7 @@ position right next to it.</p>
 <p>The problem is that point sources get pretty messed up by DAR. The (wavelength
 dependent) light they loose does not get replaced and the end result is an
 artifical &#8220;DAR&#8221; spectrum imposed on top of the actual spectrum.</p>
-<div class="figure align-center" id="id8">
+<div class="figure align-center" id="id6">
 <a class="reference internal image-reference" href="_images/DAR.png"><img alt="the effects of DAR on standard star spectrum as a function of fiber size" src="_images/DAR.png" style="height: 500px;" /></a>
 <p class="caption"><span class="caption-text">A standard star observed through multiple fiber sizes. For this observation
 GradPak was dragged across the standard star to sample all 5 fiber
@@ -288,6 +288,30 @@ fibers in the array. This is not so crazy: a good flat field calibration will
 remove the <em>relative</em> spectral differences between the fibers, then a single
 fiber (or group of fibers) can provide the <em>absolute</em> spectral calibration for
 the entire IFU.</p>
+<p>In fact, we can test how legit this is. The figure below compares the
+absolute flux calibration across all fiber sizes. The data are taken
+from a single galaxy frame that has gone through all reduction steps,
+including flux calibration (but not sky subtraction). Each line
+represents the average of all 4 sky fibers for a single fiber size and
+all lines have been divided by the mean of <em>all</em> sky fibers. From this
+we can see that the sky spectrum in all fiber sizes is the same to
+within 5% for wavelengths &gt; 4000 AA. Right around 4000 AA the 2&#8221; and
+3&#8221; fibers deviate from the rest of the fibers by 10-20%, but this is
+just at the limit of our &#8220;good&#8221; data range (the signal drops
+precipitously at this point). All in all not too bad.</p>
+<div class="figure align-center" id="id7">
+<a class="reference internal image-reference" href="_images/flux_cal_test.png"><img alt="why using only 6&quot; fibers for flux calibration is OK" src="_images/flux_cal_test.png" style="height: 500px;" /></a>
+<p class="caption"><span class="caption-text">A test of the absolute flux calibration across all fiber sizes when
+using standard star data from only 6&#8221; fibers. The data are taken
+from a single galaxy exposure that has been reduced through flux
+calibration, but skipping sky subtraction. Each line represents the
+average of all 4 sky fibers for a given fiber size and all lines
+are normalized by the mean of <em>all</em> sky fibers. The dotted and
+dashed lines show deviations at the 5% and 10% level,
+respectively. All fiber sizes show an absolute flux calibration
+consistent within 5% for wavelengths &gt; 4000 AA. At 4000 AA the 2&#8221;
+and 3&#8221; fibers deviate by up to 20%.</span></p>
+</div>
 <p>It&#8217;s important to note that for my actual observations I <em>did not</em> drag the
 star across the IFU (as is common for many other IFUs). For each standard star
 frame I placed the star in the center of a 6&#8221; and left it there the whole
