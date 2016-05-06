@@ -286,6 +286,34 @@ remove the *relative* spectral differences between the fibers, then a single
 fiber (or group of fibers) can provide the *absolute* spectral calibration for
 the entire IFU.
 
+In fact, we can test how legit this is. The figure below compares the
+absolute flux calibration across all fiber sizes. The data are taken
+from a single galaxy frame that has gone through all reduction steps,
+including flux calibration (but not sky subtraction). Each line
+represents the average of all 4 sky fibers for a single fiber size and
+all lines have been divided by the mean of *all* sky fibers. From this
+we can see that the sky spectrum in all fiber sizes is the same to
+within 5% for wavelengths > 4000 AA. Right around 4000 AA the 2" and
+3" fibers deviate from the rest of the fibers by 10-20%, but this is
+just at the limit of our "good" data range (the signal drops
+precipitously at this point). All in all not too bad.
+
+.. figure:: figs/flux_cal_test.png
+   :height: 500px
+   :align: center
+   :alt: why using only 6" fibers for flux calibration is OK
+
+   A test of the absolute flux calibration across all fiber sizes when
+   using standard star data from only 6" fibers. The data are taken
+   from a single galaxy exposure that has been reduced through flux
+   calibration, but skipping sky subtraction. Each line represents the
+   average of all 4 sky fibers for a given fiber size and all lines
+   are normalized by the mean of *all* sky fibers. The dotted and
+   dashed lines show deviations at the 5% and 10% level,
+   respectively. All fiber sizes show an absolute flux calibration
+   consistent within 5% for wavelengths > 4000 AA. At 4000 AA the 2"
+   and 3" fibers deviate by up to 20%.
+
 It's important to note that for my actual observations I *did not* drag the
 star across the IFU (as is common for many other IFUs). For each standard star
 frame I placed the star in the center of a 6" and left it there the whole
