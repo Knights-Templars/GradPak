@@ -238,16 +238,16 @@ every single fiber so you could later do a fiber-by-fiber flux calibration,
 but in practice you'll probably have to settle with getting a few fibers each
 night.
 
-**HERE'S WHERE IT GETS BAD.** The smallest GradPak fibers are really small. So
+BUT THERE IS A PROBLEM. The smallest GradPak fibers are really small. So
 small, in fact, that they get affected by differential atmospheric refraction
 (DAR). DAR causes light of different wavelengths to have slightly different
-focus positions at the telescope focal plane. For older *Paks this wasn't a
+focus positions at the telescope focal plane. For older Paks this wasn't a
 problem because the fibers were so big that all the light from each on-sky
 position fell within the same fiber. Unfortunately, the 2" and 3" fibers are
-small enough (~200 and 300 microns, respectively. AKA, pretty damn small)
-that DAR causes some light to be lost off the edge of the fiber. Cruicially
-there is a spectrum to this lost light (that's the very nature of DAR). In
-other words, you might capture all of the light redward of 5000 AA, but start
+small enough (~200 and 300 microns, respectively. AKA, pretty damn small) that
+DAR causes some light to be lost off the edge of the fiber. Cruicially there
+is a spectrum to this lost light (that's the very nature of DAR). In other
+words, you might capture all of the light redward of 5000 AA, but start
 loosing light off the side of the fiber at bluer wavelengths.
 
 For observations of extended objects this isn't that much of an issue. DAR
