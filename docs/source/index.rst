@@ -14,6 +14,7 @@ Using Gradpak
 .. toctree::
    :maxdepth: 2
 	      
+   Installation
    Data_Acquisition
    Data_Reduction
 
