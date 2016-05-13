@@ -12,13 +12,19 @@ This will result in a folder called GradPak in your current directory. The
 structure is::
 
  GradPak
+ |-- GradPak code
+ |
  |-- docs/
- |   |-- Source code for these document pages. Can be ignored.
+ |   `-- Source code for these document pages. Can be ignored.
  |
  |-- extras/
- |   |-- Things like fiber maps, ds9 templates, etc.
- |
- |-- GradPak code
+ |   |-- GradPak_fibermap.pdf                <-- numbered fiber map
+ |   |-- gradpak_w_sky_comp.tpl              <-- ds9 template file
+ |   |-- gradpak_w_sky_astrometry_table.txt  <-- similar to above
+ |   |-- gradpak.iraf                        <-- ApID table for n00bs
+ |   |-- gradpak_sizes.iraf                  <-- ApID table for pros
+ |   `-- README.rst                          <-- more detailed info
+ 
 
 All of the main python code you'll need for data reduction and analysis lives
 in the root directory. The items in the extra directory will be very usefull
