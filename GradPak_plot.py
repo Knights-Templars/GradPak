@@ -20,8 +20,6 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import pywcs
-import pywcsgrid2 as wcsgrid
 import pyfits
 import scipy.interpolate as spi
 import scipy.ndimage.interpolation as spndi
@@ -355,12 +353,21 @@ def prep_axis(fitsfile = None, invert = True, sky = False, imrot = False,
     '''
 
     if fitsfile:
+        try:
+            import pywcs
+        except ImportError:
+            raise Exception("Could not find pywcs! Without it you cannot use the fitsfile option :(")
+        
         hdu = pyfits.open(fitsfile)[0]
         imdata = hdu.data
         if imrot:
             imdata = spndi.rotate(imdata,-1*imrot,reshape=False)
             hdu.header.update('CROTA2',imrot)
         if wcsax:
+            try:
+                import pywcsgrid2 as wcsgrid
+            except ImportError:
+                raise Exception("Could not fine pywcsgrid2! Withoutit you cannot use the wcsax option :(")
             axistype = (wcsgrid.Axes, dict(header=hdu.header))
         else:
             axistype = None
