@@ -8,6 +8,7 @@ PAPER         =
 BUILDDIR      = ../../GradPak_docs
 PDFBUILDDIR   = /tmp
 PDF           = ../GradPak_guide.pdf
+WEBDIR        = /d/www/eigenbrot/GradPak
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -58,6 +59,13 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+.PHONY: publish
+publish:
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	@echo
+	cp -r $(BUILDDIR)/html/* $(WEBDIR)
+	@echo "Build finished. The HTML pages in $(BUILDDIR)/html have been copied to $(WEBDIR)."
 
 .PHONY: dirhtml
 dirhtml:
