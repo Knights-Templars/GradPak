@@ -622,7 +622,7 @@ def plot(values, binheader = None, plotbins = False,
     cbar.ax.xaxis.set_ticks_position('top')
     cbar.ax.xaxis.set_label_position('top')
 
-    if not plotbins:
+    if not plotbins and binheader is not None:
         boxes, bval = get_bin_boxes(binheader, patches, pval)
         boxColl = PatchCollection(boxes, 
                                   cmap=plt.get_cmap(cmap),
