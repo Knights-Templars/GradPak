@@ -27,10 +27,10 @@ GradPak API
 
    GradPak_flatfu.rst
    GradPak_skysub.rst
-   GradPak_bin.rst
    GradPak_scat.rst
    GradPak_error.rst
-
+   GradPak_bin.rst
+   GradPak_plot.rst
 ..
    Indices
    -------

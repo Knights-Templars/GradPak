@@ -1,22 +1,42 @@
 ################################################################################
-#
-# This module contains an API for plotting data taken with GradPak. At it's
-# heart it contains hardcoded information about the location of all the
-# GradPak fibers on the sky, which can then be used to make nice plots with
-# pyplot's Patch Collection object. 
-#
-# User interaction should be limited to the plot*() functions, all of which,
-# at their most basic level, take in an array of length 109 (the number of
-# GradPak fibers) and return an pyplot Axes object containing a plot that can
-# be further modified by the user. Specific details about the plot*()
-# functions and their copious advanced options can be found below.
-#
 # History:
 #      v1 - A. Eigenbrot Jan. 2015
 #      v1.1 - Feb. 2015 - Added Fits image capabilities
 #
 ################################################################################
+"""
+************
+GradPak_plot
+************
 
+This module contains an API for plotting data taken with GradPak. At
+it's heart it contains hardcoded information about the location of all
+the GradPak fibers on the sky, which can then be used to make nice
+plots with pyplot's Patch Collection object.
+
+User interaction should be limited to the plot*() functions, all of
+which, at their most basic level, take in an array of length 109 (the
+number of GradPak fibers) and return an pyplot Axes object containing
+a plot that can be further modified by the user. Specific details
+about the plot*() functions and their copious advanced options can be
+found below.
+
+Useful Example
+--------------
+
+An extremely basic example can be used to plot the GradPak fibers
+color coded by fiber number::
+
+ >>> ax = GradPak_plot.plot(np.arange(109))
+ >>> ax.figure.show()
+
+More options, including synergy with :mod:GradPak_bin, FITS image
+overplotting, rotations, and more can be found in :func:plot, which is
+really the only function you should ever use.
+
+Functions
+---------
+"""
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -288,21 +308,36 @@ def transform_patches(patches, pa=0, center=[0,0], reffiber=105, scale=1.,
     """
     Rotate and shift the centers of the GradPak Patches.
 
-    Inputs:
-        patches - GradPak patches produced by GradPak_patches()
-
-        pa - Position angle, in degrees, of GradPak on sky.
-
-        center - Tuple or length 2 list containing the center, in decimal 
-                 degrees, of GradPak 
-
-        reffiber - The fiber to place at center
-
-        scale - Radial scale factor, in px/arcsec. This is needed because 
-                Patches are plotted in pixel space.
+    Parameters
+    ----------
     
-    Returns:
+    patches : list of matplotlib.patches.Circle
+        GradPak patches produced by GradPak_patches()
+
+    pa : float
+        Position angle, in degrees, of GradPak on sky.
+
+    center : list 
+        Tuple or length 2 list containing the position, in decimal 
+        degrees, of the fiber specified in **reffiber**
+
+    reffiber : int
+        The fiber to place at center
+
+    scale : float
+        Radial scale factor, in px/arcsec. This is needed because 
+        Patches are plotted in pixel space.
+
+    refpatches : None or list of matplotlib.patches.Circle
+        A full set of all GradPak patches that are used to compute the
+        transformed locations of binned patches.
+        
+    Returns
+    -------
+
+    patches : list of pyplot.Patches
         The shifted, rotated, and scaled patches
+
     """
     if refpatches is None:
         refpatches = np.copy(patches)
@@ -358,22 +393,36 @@ def prep_axis(fitsfile = None, invert = True, sky = False, imrot = False,
     limits on the plot. It is also possible to provide a FITS image that will
     be displayed on the axes with WCS axis labels.
 
-    Input options:
-        fitsfile - A string containing the name of a fits file to plot. This 
-                   file MUST have a well formed, useful header.
+    Parameters
+    ----------
+    
+    fitsfile : str
+        The name of a fits file to plot. This 
+        file MUST have a well formed, useful header.
 
-        invert - If a fitsfile is provided, do you want to invert the colormap?
+    invert : bool
+        If a fitsfile is provided, do you want to invert the colormap?
 
-        sky - Do you want to show sky fibers in the plot?
+    sky : bool
+        Do you want to show sky fibers in the plot?
 
-        imrot - The angle (in degrees, E of N) to rotate the fitsfile by
+    imrot : float
+        The angle (in degrees, E of N) to rotate the fitsfile by
 
-        wcsax - Display axis labels in WCS coordinates?
+    wcsax : bool
+        Display axis labels in WCS coordinates?
 
-        figsize - Tuple of size of figure, in inches
+    figsize : list or tuple
+        Width x height of figure, in inches
 
-    Output:
-       pyplot Axes object
+    Returns
+    -------
+
+    ax : matplotlib.axes.Axes
+        The requested axis, all setup and ready for plotting
+
+    hdu : None or pyfits.PrimaryHDU
+        The HDU used to create the WCS axis
     """
 
     if fitsfile:
@@ -447,40 +496,49 @@ def prep_patches(values,
     used to transform the patches and remove any unwanted fibers (sky or user
     defined).
 
-    Inputs:
-        values - A length 109 numpy array containing the data value of each 
-                 fiber, in order.
+    Parameters
+    ----------
+    values : numpy.ndarray
+        Should be length 109 and contain the data value of each 
+        fiber, in order.
         
-        binheader : pyfits.header.Header object
-            A header (probably produced by :mod:GradPak_bin)
-            containing information on what fibers went into what
-            apertures
+    binheader : pyfits.header.Header 
+        A header (probably produced by :mod:GradPak_bin)
+        containing information on what fibers went into what
+        apertures
 
-        plotbins : bool
-            Somewhat strangely named; if True plot the raw GradPak
-            fibers, regardless of aperture assignment (the actual
-            fiber values will still be taken on an
-            aperture-by-aperture basis).
+    plotbins : bool
+        Somewhat strangely named; if True plot the raw GradPak
+        fibers, regardless of aperture assignment (the actual
+        fiber values will still be taken on an
+        aperture-by-aperture basis).
             
-        hdu - Pyfts hdu object that contains a header that is used to 
-              transform the patches.
+    hdu : pyfits.PrimaryHDU
+        Contains a header with a WCS solution that is used to 
+        transform the patches.
+        
+    pa, center, reffiber : float
+        Parameters that describe how to transform the
+        patches. See :func:transform_patches() for more info.
 
-        pa, center, reffiber - Parameters that describe how to transform the
-                               patches. See transform_patches() for more info.
+    sky : bool
+        If True, plot sky fibers
 
-        sky - If True, plot sky fibers
+    exclude : list
+        List of fiber numbers to be excluded from the plot. If a
+        **binheader** is provided this list should contain
+        aperture numbers, not fiber numbers.
 
-        exclude : list
-            List of fiber numbers to be excluded from the plot. If a
-            **binheader** is provided this list should contain
-            aperture numbers, not fiber numbers.
+    Returns
+    -------
+    patches : list of matplotlib.patches.Circle
+        Transformed and culled list of pyplot Patch objects
 
-    Output:
-        patches - Transformed and culled list of pyplot Patch objects
+    pvals : numpy.ndarray
+        Culled list of values so that pval[i] is the value of patch[i]
 
-        pvals - Culled list of values so that pval[i] is the value of patch[i]
-
-        refcenter - The pixel center of the reference fiber
+    refcenter : list of float 
+        The pixel center of the reference fiber
     """
     if binheader is None or plotbins is False:
         patches = GradPak_patches()
@@ -530,7 +588,7 @@ def prep_patches(values,
     return patches, pval, refcenter
 
 def plot(values, binheader = None, plotbins = False,
-         ax = None, figsize = (8,8),alpha=1.0,
+         ax = None, figsize = (8,8), alpha=1.0,
          fitsfile = None, imrot = False, wcsax = True, invert=True,
          pa = 0, center = [0,0], reffiber = 105, 
          clabel = '', cmap = 'gnuplot2', minval = None, maxval = None,
@@ -551,63 +609,98 @@ def plot(values, binheader = None, plotbins = False,
     number and presented on a relative arcsec scale. More advanced usage can
     be achieved with the following options:
 
-    Input Options:
+    Parameters
+    ----------
 
-        o ax (pyplot.Axes) - If supplied, the GradPack patches will be plotted
-          in this axis. This is very useful for plotting multiple pointings on
-          the same plot. Setting this option causes fitsfile, imrot, invert,
-          and wcsax to be ignored.
+    values : numpy.ndarray
+        The data values associated with each fiber. The length of this array 
+        should be equal to either 109 or the number of bins specified in **binheader**. 
 
-        o figsize (tup) - The size of the figure, in inches. Passed directly
-          to plt.figure()
+    binheader : pyfits.header.Header
+        A FITS header that contains keywords BINFXXX and BINPXXX. This header will be used
+        to group fibers together during plotting.
+
+    plotbins : bool
+        An extremely poorly named parameter. If True, plot every *fiber* (not aperture) with
+        a value given by the value of its aperture assignment as specified by **binheader**.
+        If False the apertures specified by **binheader** will be plotted as contiguous regions.
+        
+    alpha : float
+        The desired opacity of the plotted patches.
+        
+    ax : matplotlib.axes.Axes
+        If supplied, the GradPack patches will be plotted
+        in this axis. This is very useful for plotting multiple pointings on
+        the same plot. Setting this option causes **fitsfile**, **imrot**, **invert**,
+        and **wcsax** to be ignored.
+
+    figsize : tup
+        The size of the figure, in inches. Passed directly
+        to plt.figure()
     
-        o fitsfile (str) - The name of a FITS image to draw on the plot. The
-          FITS header must contain WCS parameters in the CDELT, CRVAL, CRPIX
-          format.
+    fitsfile : str - 
+        The name of a FITS image to draw on the plot. The
+        FITS header must contain WCS parameters in the CDELT, CRVAL, CRPIX
+        format.
 
-        o imrot (float) - Rotation of fits image in relation to the axes. This
-          is useful for, e.g., aligning a galaxy's major axis along the x
-          axis. This option is ignored if fitsfile = None or ax != None
+    imrot : float
+        Rotation of fits image in relation to the axes. This
+        is useful for, e.g., aligning a galaxy's major axis along the x
+        axis. This option is ignored if **fitsfile** = None or **ax** != None
 
-        o wcsax (bool) - If True the axis labels will be in Fk5 WCS
-          coordinates. This option is ignored if fitsfile = None or ax != None
+    wcsax : bool
+        If True the axis labels will be in Fk5 WCS
+        coordinates. This option is ignored if **fitsfile** = None or **ax** != None
 
-        o invert (bool) - If True, the colormap of the fits image will be
-          inverted. This option is ignored if fitsfile = None or ax != None
+    invert : bool
+        If True, the colormap of the fits image will be
+        inverted. This option is ignored if **fitsfile** = None or **ax** != None
 
-        o pa (float) - Position angle of GradPak in decimal degrees. This
-          angle is measured East of North and should be whatever you told the
-          telescope operator.
+    pa : float
+        Position angle of GradPak in decimal degrees. This
+        angle is measured East of North and should be whatever you told the
+        telescope operator.
 
-        o center (tup or list) - Length 2 tuple or list containing the
-          coordinates of the GradPak array. The units should be decimal Ra and
-          Dec. This is probably the coordinates you had listed in your cache.
+    center : tup or list
+        Length 2 tuple or list containing the coordinates of the GradPak array. 
+        The units should be decimal Ra and Dec. This is probably the 
+        coordinates you had listed in your cache.
 
-        o reffiber (int) - The IFU fiber placed at the coordinate given in
-          center. Default is the lower left fiber (viewed on Wifoe), which is
-          fiber 105.
+    reffiber : int
+        The IFU fiber placed at the coordinate given in
+        center. Default is fiber 105.
 
-        o clabel (str) - The label of the colorbar. This is typically a
-          description of the values being plotted.
+    clabel : str
+        The label of the colorbar. This is typically a
+        description of the values being plotted.
 
-        o cmap (str) - The name of a matplotlib colormap that will be applied
-          to the data values. This is passed directly to plt.get_cmap()
+    cmap : str
+        The name of a matplotlib colormap that will be applied
+        to the data values. This is passed directly to plt.get_cmap()
+        Don't use 'jet'.
+        
+    minval/maxval : float
+        The lower and upper limits of the colorbar,
+        respectively. These are passed directly to
+        matplotlib.colors.Normalize()
 
-        o minval/maxval (float) - The lower and upper limits of the colorbar,
-          respectively. These are passed directly to
-          matplotlib.colors.Normalize()
-
-        o labelfibers (bool) - If True, each fiber will be labeled with its
-          fiber number.
+    labelfibers : bool
+        If True, each fiber will be labeled with its
+        fiber number.
     
-        o sky (bool) - If True, sky fibers will be plotted and the axes limits
-          expanded to view the sky fibers.
+    sky : bool
+        If True, sky fibers will be plotted and the axes limits
+        expanded to view the sky fibers.
 
-        o exclude (list) - A list of fiber numbers to be excluded from
-          plotting. These patches are simply deleted
+    exclude : list
+        A list of fiber numbers to be excluded from
+        plotting. These patches are simply deleted. 
 
-    Output:
-        ax (pyplot.Axes) - The Axes containing all the plotting requested.
+    Returns
+    -------
+
+    ax : matplotlib.axes.Axes
+        The Axes containing all the plotting requested.
 
     """
     tmpax, hdu = prep_axis(fitsfile = fitsfile, 
