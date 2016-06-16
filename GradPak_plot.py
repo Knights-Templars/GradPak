@@ -30,8 +30,8 @@ color coded by fiber number::
  >>> ax = GradPak_plot.plot(np.arange(109))
  >>> ax.figure.show()
 
-More options, including synergy with :mod:GradPak_bin, FITS image
-overplotting, rotations, and more can be found in :func:plot, which is
+More options, including synergy with :mod:`GradPak_bin`, FITS image
+overplotting, rotations, and more can be found in :func:`plot`, which is
 really the only function you should ever use.
 
 Functions
@@ -176,9 +176,9 @@ def GradPak_patches():
 
 def get_binned_patches(header):
     """Produce patches from the header of a GradPak multispec data
-    file produced by :mod:GradPak_bin.
+    file produced by :mod:`GradPak_bin`.
 
-    The output is interchangeable with the output of :func:GradPak_patches
+    The output is interchangeable with the output of :func:`GradPak_patches`
     """
     
     patches = GradPak_patches()[:,1]
@@ -228,7 +228,7 @@ def exclude_bins(header, exclude):
     When using a binheader the user will specify excluded data by
     *aperture* number. This function converts these numbers to the
     range of underlying GradPak *fiber* numbers, which is what
-    :func:prep_patches and its ilk expect.
+    :func:`prep_patches` and its ilk expect.
     """
 
     new_exclude = []
@@ -503,7 +503,7 @@ def prep_patches(values,
         fiber, in order.
         
     binheader : pyfits.header.Header 
-        A header (probably produced by :mod:GradPak_bin)
+        A header (probably produced by :mod:`GradPak_bin`)
         containing information on what fibers went into what
         apertures
 
@@ -519,7 +519,7 @@ def prep_patches(values,
         
     pa, center, reffiber : float
         Parameters that describe how to transform the
-        patches. See :func:transform_patches() for more info.
+        patches. See :func:`transform_patches` for more info.
 
     sky : bool
         If True, plot sky fibers
