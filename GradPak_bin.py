@@ -40,7 +40,7 @@ import pyfits
 import GradPak_plot as GPP
 import matplotlib.pyplot as plt
 
-def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[]):
+def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[], logfile=None):
     """Bin GradPak fibers along a row until the desired SNR is achieved.
 
     The way fibers are grouped together is somewhat simplistic, but the
@@ -135,6 +135,10 @@ def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[]):
 
     fibdict = {}
     binnum = 1
+
+    if logfile is not None:
+        lf = open(logfile,'w')
+
     for i in range(row_pos.size):
 
         if row_pos[i] > 80:
@@ -190,6 +194,9 @@ def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[]):
             binf, bine = create_bin(fstack, estack, snstack)
             binsn = compute_SN(binf, bine, waveidx)
             print 'binned aperture {}: {}, SNR: {}'.format(binnum,fibers, binsn)
+            if logfile is not None:
+                lf.write('binned aperture {}: {}, SNR: {}\n'.format(binnum,fibers, binsn))
+
             bin_x_pos = np.mean(xpos)
             bin_y_pos = np.mean(ypos)
             fibstr = [str(i) for i in fibers]
