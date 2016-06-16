@@ -155,7 +155,12 @@ def GradPak_patches():
     return np.array(patch_list)
 
 def get_binned_patches(header):
+    """Produce patches from the header of a GradPak multispec data
+    file produced by :mod:GradPak_bin.
 
+    The output is interchangeable with the output of :func:GradPak_patches
+    """
+    
     patches = GradPak_patches()[:,1]
     patch_list = []
 
@@ -175,7 +180,14 @@ def get_binned_patches(header):
     return np.array(patch_list)
 
 def fill_fibers_with_bins(header, values):
+    """Given a FITS header containing information about the fibers in
+    each bin return a list of values where each individual GradPak
+    fiber is assigned the value of its corresponding bin.
 
+    This function is useful if you want to plot every GradPak fiber,
+    but fill them with binned data values.
+    """
+    
     newvalues = np.zeros(109) + np.nan
     for i in range(109):
         
@@ -190,6 +202,14 @@ def fill_fibers_with_bins(header, values):
     return newvalues
 
 def exclude_bins(header, exclude):
+    """Convert an exclusion vector using binned apertures to an
+    exclusion vector using raw GradPak fibers.
+
+    When using a binheader the user will specify excluded data by
+    *aperture* number. This function converts these numbers to the
+    range of underlying GradPak *fiber* numbers, which is what
+    :func:prep_patches and its ilk expect.
+    """
 
     new_exclude = []
     
@@ -206,6 +226,10 @@ def exclude_bins(header, exclude):
     return new_exclude
 
 def get_bin_boxes(header, patches, pval):
+    """Given a FITS header containing binning information return a
+    list of pyplot Polygon objects that can be used to plot boxes
+    around all the fibers in a given bin.
+    """
     
     boxlist = []
     bval = np.array([])
@@ -261,7 +285,7 @@ def get_bin_boxes(header, patches, pval):
 
 def transform_patches(patches, pa=0, center=[0,0], reffiber=105, scale=1.,
                       refpatches=None):
-    '''
+    """
     Rotate and shift the centers of the GradPak Patches.
 
     Inputs:
@@ -279,7 +303,7 @@ def transform_patches(patches, pa=0, center=[0,0], reffiber=105, scale=1.,
     
     Returns:
         The shifted, rotated, and scaled patches
-    '''
+    """
     if refpatches is None:
         refpatches = np.copy(patches)
         recurse = False
@@ -313,12 +337,12 @@ def transform_patches(patches, pa=0, center=[0,0], reffiber=105, scale=1.,
         return patches, False
 
 def wcs2pix(patches, header):
-    '''
+    """
     Given a pyfits header object, convert the centers of the GradPak patches
     from WCS coordinates (decimal degrees) to pixel coordinates on the
     corresponding FITs file. Radial scaling is done as part of
     transform_patches().
-    '''
+    """
     header_wcs = pywcs.WCS(header)
 
     for c in patches[:,1]:
@@ -328,7 +352,7 @@ def wcs2pix(patches, header):
 
 def prep_axis(fitsfile = None, invert = True, sky = False, imrot = False,
               wcsax = True, figsize = (8,8)):
-    '''
+    """
     Create a pyplot Axes object and get it ready to receive some GradPack
     patches. This includes the creation of a colorbar and setting reasonable
     limits on the plot. It is also possible to provide a FITS image that will
@@ -342,7 +366,7 @@ def prep_axis(fitsfile = None, invert = True, sky = False, imrot = False,
 
         sky - Do you want to show sky fibers in the plot?
 
-        imrot - The angle (in degrees) to rotate the fitsfile by
+        imrot - The angle (in degrees, E of N) to rotate the fitsfile by
 
         wcsax - Display axis labels in WCS coordinates?
 
@@ -350,7 +374,7 @@ def prep_axis(fitsfile = None, invert = True, sky = False, imrot = False,
 
     Output:
        pyplot Axes object
-    '''
+    """
 
     if fitsfile:
         try:
@@ -418,7 +442,7 @@ def prep_patches(values,
                  binheader = None, plotbins = False,
                  hdu = None, pa = 0, center = [0,0], reffiber = 105,
                  sky = False, exclude = []):
-    '''
+    """
     Generate GradPak patches and prepare them for plotting. This function is
     used to transform the patches and remove any unwanted fibers (sky or user
     defined).
@@ -426,7 +450,18 @@ def prep_patches(values,
     Inputs:
         values - A length 109 numpy array containing the data value of each 
                  fiber, in order.
+        
+        binheader : pyfits.header.Header object
+            A header (probably produced by :mod:GradPak_bin)
+            containing information on what fibers went into what
+            apertures
 
+        plotbins : bool
+            Somewhat strangely named; if True plot the raw GradPak
+            fibers, regardless of aperture assignment (the actual
+            fiber values will still be taken on an
+            aperture-by-aperture basis).
+            
         hdu - Pyfts hdu object that contains a header that is used to 
               transform the patches.
 
@@ -435,7 +470,10 @@ def prep_patches(values,
 
         sky - If True, plot sky fibers
 
-        exclude - List of fiber numbers to be excluded from the plot
+        exclude : list
+            List of fiber numbers to be excluded from the plot. If a
+            **binheader** is provided this list should contain
+            aperture numbers, not fiber numbers.
 
     Output:
         patches - Transformed and culled list of pyplot Patch objects
@@ -443,7 +481,7 @@ def prep_patches(values,
         pvals - Culled list of values so that pval[i] is the value of patch[i]
 
         refcenter - The pixel center of the reference fiber
-    '''
+    """
     if binheader is None or plotbins is False:
         patches = GradPak_patches()
         refpatches = None
@@ -497,7 +535,7 @@ def plot(values, binheader = None, plotbins = False,
          pa = 0, center = [0,0], reffiber = 105, 
          clabel = '', cmap = 'gnuplot2', minval = None, maxval = None,
          labelfibers = True, sky = False, exclude = []):
-    '''Generate a spatial plot of the GradPack IFU fibers with each fiber colored
+    """Generate a spatial plot of the GradPack IFU fibers with each fiber colored
     based on user-supplied values. This is one of the main user-level
     functions in this module, and returns an Axes object for integration into
     whatever higher-level plotting the user is doing.
@@ -571,7 +609,7 @@ def plot(values, binheader = None, plotbins = False,
     Output:
         ax (pyplot.Axes) - The Axes containing all the plotting requested.
 
-    '''
+    """
     tmpax, hdu = prep_axis(fitsfile = fitsfile, 
                            invert = invert, 
                            sky = sky, 
@@ -642,7 +680,7 @@ def plot_img(values,
              clabel='', cmap='gnuplot2', minval = None, maxval = None,
              numpoints=500, method='nearest',
              sky = False, exclude=[]):
-    '''
+    """
     Generate an interplotaed image of the GradPak IFU using user supplied
     values. This is one of the main user-level functions in this module, and
     returns an Axes object for integration into whatever higher-level plotting
@@ -724,7 +762,7 @@ def plot_img(values,
     Output:
         ax (pyplot.Axes) - The Axes containing all the plotting requested.
 
-    '''
+    """
     if not ax:
         ax, hdu = prep_axis(fitsfile, invert, sky, imrot, figsize)
         
@@ -772,7 +810,7 @@ def plot_rows(values, binheader = None,
               weights=None, err=False,
               kpc_scale=None, zcorr=0,
               **plot_kwargs):
-    '''
+    """
     Bin values by GradPak row and produce a plot of the results.  Each row's
     value is the weighted average of the fibers in that row. This is one of
     the main user-level functions in this module, and returns an Axes object
@@ -832,7 +870,7 @@ def plot_rows(values, binheader = None,
 
         o binned_stds (ndarray) - The weighted standard deviation of each row
 
-    '''
+    """
     if binheader:
         y_values = np.array([c.center[1] for c in get_binned_patches(binheader)[:,1]])
     else:
@@ -885,14 +923,14 @@ def plot_rows(values, binheader = None,
     
 
 def format_tpl(tpl):
-    '''Take in a ds9 .tpl file and print out corresponding pyplot Patch
+    """Take in a ds9 .tpl file and print out corresponding pyplot Patch
     definitions.
 
     WARNING: It is almost certainly the case that ds9 template files are NOT
     listed in fiber order. It is therefore NOT SAFE to assume that the output
     of this function can be used to produce something like
     GradPak_patches(). Manual confirmation of fiber order is crucial.
-    '''
+    """
     
     with open(tpl,'r') as f:
         lines = f.readlines()
