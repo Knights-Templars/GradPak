@@ -762,7 +762,7 @@ def plot(values, binheader = None, plotbins = False,
                                   norm=matplotlib.colors.Normalize(
                                       vmin=minval,vmax=maxval),
                                   edgecolor = 'none',
-                                  alpha=alpha/1.3)
+                                  alpha=alpha)
         boxColl.set_array(bval)
         ax.add_collection(boxColl)
 
