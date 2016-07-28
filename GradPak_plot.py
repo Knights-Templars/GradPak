@@ -428,6 +428,7 @@ def prep_axis(fitsfile = None, invert = True, sky = False, imrot = False,
     if fitsfile:
         try:
             import pywcs
+            global pywcs
         except ImportError:
             raise Exception("Could not find pywcs! Without it you cannot use the fitsfile option :(")
         
@@ -439,6 +440,7 @@ def prep_axis(fitsfile = None, invert = True, sky = False, imrot = False,
         if wcsax:
             try:
                 import pywcsgrid2 as wcsgrid
+                global wcsgrid
             except ImportError:
                 raise Exception("Could not fine pywcsgrid2! Withoutit you cannot use the wcsax option :(")
             axistype = (wcsgrid.Axes, dict(header=hdu.header))
