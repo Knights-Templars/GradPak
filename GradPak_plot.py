@@ -386,9 +386,8 @@ def wcs2pix(patches, header):
     return patches
 
 def prep_axis(fitsfile = None, invert = True, sky = False, imrot = False,
-              wcsax = True, figsize = (8,8)):
-    """
-    Create a pyplot Axes object and get it ready to receive some GradPack
+              wcsax = True, figure = None, figsize = (8,8), geometry = (1,1,1)):
+    """Create a pyplot Axes object and get it ready to receive some GradPack
     patches. This includes the creation of a colorbar and setting reasonable
     limits on the plot. It is also possible to provide a FITS image that will
     be displayed on the axes with WCS axis labels.
@@ -415,6 +414,15 @@ def prep_axis(fitsfile = None, invert = True, sky = False, imrot = False,
     figsize : list or tuple
         Width x height of figure, in inches
 
+    figure : matplotlib.pyplot.Figure instance 
+        If not None, the axis object created by will be placed into
+        this figure with the geometry specified by **geometry**.
+
+    geometry : int or tup
+        A pyplot-style geometry argument for placing the axis in its
+        parent figure. Can be a 3 digit integer (e.g., 111) or a tuple
+        (e.g., (1,1,1)
+
     Returns
     -------
 
@@ -423,6 +431,7 @@ def prep_axis(fitsfile = None, invert = True, sky = False, imrot = False,
 
     hdu : None or pyfits.PrimaryHDU
         The HDU used to create the WCS axis
+
     """
 
     if fitsfile:
@@ -450,8 +459,10 @@ def prep_axis(fitsfile = None, invert = True, sky = False, imrot = False,
         hdu = None
         axistype = None
 
-    fig = plt.figure(figsize=figsize)
-    grid = ImageGrid(fig, 111,
+    if not figure:
+        fig = plt.figure(figsize=figsize)
+
+    grid = ImageGrid(figure, geometry,
                      nrows_ncols = (1,1),
                      cbar_mode = 'each',
                      cbar_location = 'top',
@@ -590,9 +601,9 @@ def prep_patches(values,
     return patches, pval, refcenter
 
 def plot(values, binheader = None, plotbins = False,
-         ax = None, figsize = (8,8), alpha=1.0,
+         ax = None, figsize = (8,8), figure = None, geometry = (1,1,1), 
          fitsfile = None, imrot = False, wcsax = True, invert=True,
-         pa = 0, center = [0,0], reffiber = 105, 
+         pa = 0, center = [0,0], reffiber = 105, alpha=1.0,
          clabel = '', cmap = 'gnuplot2', minval = None, maxval = None,
          labelfibers = True, sky = False, exclude = []):
     """Generate a spatial plot of the GradPack IFU fibers with each fiber colored
@@ -636,10 +647,20 @@ def plot(values, binheader = None, plotbins = False,
         the same plot. Setting this option causes **fitsfile**, **imrot**, **invert**,
         and **wcsax** to be ignored.
 
+    figure : matplotlib.pyplot.Figure instance
+        If not None, the axis object created by :func:`plot` will be
+        placed into this figure with the geometry specified by
+        **geometry**.
+
     figsize : tup
-        The size of the figure, in inches. Passed directly
-        to plt.figure()
+        The size of the figure, in inches. Passed directly to
+        plt.figure(). This option is ignored if **figure** is not None
     
+    geometry : int or tup
+        A pyplot-style geometry argument for placing the axis in its
+        parent figure. Can be a 3 digit integer (e.g., 111) or a tuple
+        (e.g., (1,1,1)
+
     fitsfile : str - 
         The name of a FITS image to draw on the plot. The
         FITS header must contain WCS parameters in the CDELT, CRVAL, CRPIX
@@ -710,7 +731,9 @@ def plot(values, binheader = None, plotbins = False,
                            sky = sky, 
                            imrot = imrot, 
                            wcsax = wcsax,
-                           figsize = figsize)
+                           figsize = figsize,
+                           geometry = geometry,
+                           figure = figure)
 
     if not ax:
         ax = tmpax
