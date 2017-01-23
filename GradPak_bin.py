@@ -96,6 +96,16 @@ def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[],
         A list containing fibers to exlcude from binning. Sky fibers are
         automatically excluded and fiber numbers start at 1.
 
+    logfile : str
+        Name of a log file that will contain, for each aperture, a
+        list of the individual fibers and the total S/N.
+
+    logfits : str
+        Name of a FITS file that will contain a separate HDU for each
+        aperture. Each HDU will contain an array with two dimensions
+        that records the fiber numbers and associated weights for that
+        aperture.
+        
     Returns
     -------
     
