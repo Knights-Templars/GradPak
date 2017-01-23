@@ -26,7 +26,7 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="GradPak 1.0 documentation" href="index.html" />
     <link rel="next" title="Data Reduction" href="Data_Reduction.html" />
-    <link rel="prev" title="The Online GradPak Guide" href="index.html" /> 
+    <link rel="prev" title="Installation" href="Installation.html" /> 
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -36,7 +36,7 @@
           <a href="Data_Reduction.html" title="Data Reduction"
              accesskey="N">next</a></li>
         <li class="right" >
-          <a href="index.html" title="The Online GradPak Guide"
+          <a href="Installation.html" title="Installation"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
       </ul>
@@ -73,23 +73,24 @@ gradpak_w_sky_comp.tpl template file to place the GradPak IFU on your
 object in all of the positions you want to observe. If you rotate the IFU
 note the angle given in the region information box. Fortunately this angle
 is exactly the position angle you will input to WIYN.</li>
-<li>Select a fiber in GradPak to be your &#8220;reference&#8221; fiber. I usually use
-fiber 105</li>
+<li>Select a fiber in GradPak to be your &#8220;reference&#8221; fiber. The
+standard is fiber 105.</li>
 <li>Find this fiber on IFU template and add circle regions that are perfectly
 concentric with the reference fiber. It is very important to get these
 centered exactly right because they are what will give you the coordinates
 of you IFU pointing. Use the dialog box in ds9 to get the coordinates for
 thes circles.</li>
-<li>Give each pointing a name and write its information to the chache file.</li>
+<li>Give each pointing a name and write its information to the cache file.</li>
 </ol>
 </div></blockquote>
-<p>As you might guess, the general idea is that the &#8220;position&#8221; of GradPak will
-always be the location of the reference fiber. For this reason we also need
-some bright stars to calibrate the offset between the default telescope
-pointing and the reference fiber. You should have at least three bring stars
-(brightness coming soon) that more-or-less evenly distributed around the
-science pointings. Use ds9&#8217;s catalog tools to find these stars and add them to
-the cache (call them check1, check2, etc.).</p>
+<p>As you might guess, the general idea is that the &#8220;position&#8221; of GradPak
+will always be the location of the reference fiber. For this reason we
+also need some bright stars to calibrate the offset between the
+default telescope pointing and the reference fiber. You should have at
+least three bring stars (brightness coming soon) that are more-or-less
+evenly distributed around the science pointings. Use ds9&#8217;s catalog
+tools to find these stars and add them to the cache (call them check1,
+check2, etc.).</p>
 <p>When you&#8217;re all done with this you should have a cache file that looks
 something like this:</p>
 <div class="highlight-python"><div class="highlight"><pre>#Rotator at 295.787 degrees E of N
@@ -355,8 +356,8 @@ work. If you&#8217;re feeling adventerous, go for it.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="index.html"
-                        title="previous chapter">The Online GradPak Guide</a></p>
+  <p class="topless"><a href="Installation.html"
+                        title="previous chapter">Installation</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="Data_Reduction.html"
                         title="next chapter">Data Reduction</a></p>
@@ -384,7 +385,7 @@ work. If you&#8217;re feeling adventerous, go for it.</p>
           <a href="Data_Reduction.html" title="Data Reduction"
              >next</a></li>
         <li class="right" >
-          <a href="index.html" title="The Online GradPak Guide"
+          <a href="Installation.html" title="Installation"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
       </ul>

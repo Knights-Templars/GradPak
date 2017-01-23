@@ -30,8 +30,8 @@ coordinates for the entire GradPak IFU:
     note the angle given in the region information box. Fortunately this angle
     is exactly the position angle you will input to WIYN.
 
- 2. Select a fiber in GradPak to be your "reference" fiber. I usually use
-    fiber 105
+ 2. Select a fiber in GradPak to be your "reference" fiber. The
+    standard is fiber 105.
 
  3. Find this fiber on IFU template and add circle regions that are perfectly
     concentric with the reference fiber. It is very important to get these
@@ -39,15 +39,16 @@ coordinates for the entire GradPak IFU:
     of you IFU pointing. Use the dialog box in ds9 to get the coordinates for
     thes circles. 
 
- 4. Give each pointing a name and write its information to the chache file.
+ 4. Give each pointing a name and write its information to the cache file.
 
-As you might guess, the general idea is that the "position" of GradPak will
-always be the location of the reference fiber. For this reason we also need
-some bright stars to calibrate the offset between the default telescope
-pointing and the reference fiber. You should have at least three bring stars
-(brightness coming soon) that more-or-less evenly distributed around the
-science pointings. Use ds9's catalog tools to find these stars and add them to
-the cache (call them check1, check2, etc.).
+As you might guess, the general idea is that the "position" of GradPak
+will always be the location of the reference fiber. For this reason we
+also need some bright stars to calibrate the offset between the
+default telescope pointing and the reference fiber. You should have at
+least three bring stars (brightness coming soon) that are more-or-less
+evenly distributed around the science pointings. Use ds9's catalog
+tools to find these stars and add them to the cache (call them check1,
+check2, etc.).
 
 When you're all done with this you should have a cache file that looks
 something like this::

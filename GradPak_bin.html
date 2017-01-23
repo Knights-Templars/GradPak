@@ -25,18 +25,18 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="GradPak 1.0 documentation" href="index.html" />
-    <link rel="next" title="GradPak_scat" href="GradPak_scat.html" />
-    <link rel="prev" title="GradPak_skysub" href="GradPak_skysub.html" /> 
+    <link rel="next" title="GradPak_plot" href="GradPak_plot.html" />
+    <link rel="prev" title="GradPak_error" href="GradPak_error.html" /> 
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="GradPak_scat.html" title="GradPak_scat"
+          <a href="GradPak_plot.html" title="GradPak_plot"
              accesskey="N">next</a></li>
         <li class="right" >
-          <a href="GradPak_skysub.html" title="GradPak_skysub"
+          <a href="GradPak_error.html" title="GradPak_error"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
       </ul>
@@ -73,7 +73,7 @@ defined by the user (usually relative to some galaxy&#8217;s center).</p>
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="GradPak_bin.bin">
-<code class="descclassname">GradPak_bin.</code><code class="descname">bin</code><span class="sig-paren">(</span><em>datafile</em>, <em>errfile</em>, <em>SNR</em>, <em>outputfile</em>, <em>waverange=None</em>, <em>exclude=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_bin.bin" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">GradPak_bin.</code><code class="descname">bin</code><span class="sig-paren">(</span><em>datafile</em>, <em>errfile</em>, <em>SNR</em>, <em>outputfile</em>, <em>waverange=None</em>, <em>exclude=[]</em>, <em>logfile=None</em>, <em>logfits=None</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_bin.bin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bin GradPak fibers along a row until the desired SNR is achieved.</p>
 <p>The way fibers are grouped together is somewhat simplistic, but the
 underlying mathematics is correct.</p>
@@ -131,6 +131,18 @@ files.</p>
 <blockquote>
 <div><p>A list containing fibers to exlcude from binning. Sky fibers are
 automatically excluded and fiber numbers start at 1.</p>
+</div></blockquote>
+<p><strong>logfile</strong> : str</p>
+<blockquote>
+<div><p>Name of a log file that will contain, for each aperture, a
+list of the individual fibers and the total S/N.</p>
+</div></blockquote>
+<p><strong>logfits</strong> : str</p>
+<blockquote>
+<div><p>Name of a FITS file that will contain a separate HDU for each
+aperture. Each HDU will contain an array with two dimensions
+that records the fiber numbers and associated weights for that
+aperture.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -316,11 +328,11 @@ the size of the bin itself. This is admittedly confusing.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="GradPak_skysub.html"
-                        title="previous chapter">GradPak_skysub</a></p>
+  <p class="topless"><a href="GradPak_error.html"
+                        title="previous chapter">GradPak_error</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="GradPak_scat.html"
-                        title="next chapter">GradPak_scat</a></p>
+  <p class="topless"><a href="GradPak_plot.html"
+                        title="next chapter">GradPak_plot</a></p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
@@ -342,10 +354,10 @@ the size of the bin itself. This is admittedly confusing.</p>
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="GradPak_scat.html" title="GradPak_scat"
+          <a href="GradPak_plot.html" title="GradPak_plot"
              >next</a></li>
         <li class="right" >
-          <a href="GradPak_skysub.html" title="GradPak_skysub"
+          <a href="GradPak_error.html" title="GradPak_error"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
       </ul>

@@ -1,0 +1,641 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>GradPak_plot &mdash; GradPak 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GradPak 1.0 documentation" href="index.html" />
+    <link rel="prev" title="GradPak_bin" href="GradPak_bin.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="GradPak_bin.html" title="GradPak_bin"
+             accesskey="P">previous</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-GradPak_plot"></span><div class="section" id="gradpak-plot">
+<h1>GradPak_plot<a class="headerlink" href="#gradpak-plot" title="Permalink to this headline">¶</a></h1>
+<p>This module contains an API for plotting data taken with GradPak. At
+it&#8217;s heart it contains hardcoded information about the location of all
+the GradPak fibers on the sky, which can then be used to make nice
+plots with pyplot&#8217;s Patch Collection object.</p>
+<p>User interaction should be limited to the plot*() functions, all of
+which, at their most basic level, take in an array of length 109 (the
+number of GradPak fibers) and return an pyplot Axes object containing
+a plot that can be further modified by the user. Specific details
+about the plot*() functions and their copious advanced options can be
+found below.</p>
+<div class="section" id="useful-example">
+<h2>Useful Example<a class="headerlink" href="#useful-example" title="Permalink to this headline">¶</a></h2>
+<p>An extremely basic example can be used to plot the GradPak fibers
+color coded by fiber number:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span> <span class="o">=</span> <span class="n">GradPak_plot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">109</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>More options, including synergy with <a class="reference internal" href="GradPak_bin.html#module-GradPak_bin" title="GradPak_bin"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_bin</span></code></a>, FITS image
+overplotting, rotations, and more can be found in <a class="reference internal" href="#GradPak_plot.plot" title="GradPak_plot.plot"><code class="xref py py-func docutils literal"><span class="pre">plot()</span></code></a>, which is
+really the only function you should ever use.</p>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="GradPak_plot.GradPak_patches">
+<code class="descclassname">GradPak_plot.</code><code class="descname">GradPak_patches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.GradPak_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce the &#8220;data&#8221; of where the GradPack fibers live. Because we&#8217;re all
+about plotting, these data are stored as pyplot Patches. Fiber locations
+are given in arcsec relative to the central, bottom row fiber (fiber 10).</p>
+<p>Returns a tuple of fiber number and the corresponding Patch</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.exclude_bins">
+<code class="descclassname">GradPak_plot.</code><code class="descname">exclude_bins</code><span class="sig-paren">(</span><em>header</em>, <em>exclude</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.exclude_bins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an exclusion vector using binned apertures to an
+exclusion vector using raw GradPak fibers.</p>
+<p>When using a binheader the user will specify excluded data by
+<em>aperture</em> number. This function converts these numbers to the
+range of underlying GradPak <em>fiber</em> numbers, which is what
+<a class="reference internal" href="#GradPak_plot.prep_patches" title="GradPak_plot.prep_patches"><code class="xref py py-func docutils literal"><span class="pre">prep_patches()</span></code></a> and its ilk expect.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.fill_fibers_with_bins">
+<code class="descclassname">GradPak_plot.</code><code class="descname">fill_fibers_with_bins</code><span class="sig-paren">(</span><em>header</em>, <em>values</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.fill_fibers_with_bins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a FITS header containing information about the fibers in
+each bin return a list of values where each individual GradPak
+fiber is assigned the value of its corresponding bin.</p>
+<p>This function is useful if you want to plot every GradPak fiber,
+but fill them with binned data values.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.format_tpl">
+<code class="descclassname">GradPak_plot.</code><code class="descname">format_tpl</code><span class="sig-paren">(</span><em>tpl</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.format_tpl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take in a ds9 .tpl file and print out corresponding pyplot Patch
+definitions.</p>
+<p>WARNING: It is almost certainly the case that ds9 template files are NOT
+listed in fiber order. It is therefore NOT SAFE to assume that the output
+of this function can be used to produce something like
+GradPak_patches(). Manual confirmation of fiber order is crucial.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.get_bin_boxes">
+<code class="descclassname">GradPak_plot.</code><code class="descname">get_bin_boxes</code><span class="sig-paren">(</span><em>header</em>, <em>patches</em>, <em>pval</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.get_bin_boxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a FITS header containing binning information return a
+list of pyplot Polygon objects that can be used to plot boxes
+around all the fibers in a given bin.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.get_binned_patches">
+<code class="descclassname">GradPak_plot.</code><code class="descname">get_binned_patches</code><span class="sig-paren">(</span><em>header</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.get_binned_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce patches from the header of a GradPak multispec data
+file produced by <a class="reference internal" href="GradPak_bin.html#module-GradPak_bin" title="GradPak_bin"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_bin</span></code></a>.</p>
+<p>The output is interchangeable with the output of <a class="reference internal" href="#GradPak_plot.GradPak_patches" title="GradPak_plot.GradPak_patches"><code class="xref py py-func docutils literal"><span class="pre">GradPak_patches()</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.plot">
+<code class="descclassname">GradPak_plot.</code><code class="descname">plot</code><span class="sig-paren">(</span><em>values, binheader=None, plotbins=False, ax=None, figsize=(8, 8), figure=None, geometry=(1, 1, 1), fitsfile=None, imrot=False, wcsax=True, invert=True, pa=0, center=[0, 0], reffiber=105, alpha=1.0, clabel='', cmap='gnuplot2', minval=None, maxval=None, labelfibers=True, sky=False, exclude=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a spatial plot of the GradPack IFU fibers with each fiber colored
+based on user-supplied values. This is one of the main user-level
+functions in this module, and returns an Axes object for integration into
+whatever higher-level plotting the user is doing.</p>
+<p>It is of the utmost importance that the values input variable is of length
+109 and is ordered by fiber number.</p>
+<p>A quick example of how to use this function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">GradPak_plot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">109</span><span class="p">))</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This will show you a simple plot with the fibers colored by their fiber
+number and presented on a relative arcsec scale. More advanced usage can
+be achieved with the following options:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>values</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>The data values associated with each fiber. The length of this array 
+should be equal to either 109 or the number of bins specified in <strong>binheader</strong>.</p>
+</div></blockquote>
+<p><strong>binheader</strong> : pyfits.header.Header</p>
+<blockquote>
+<div><p>A FITS header that contains keywords BINFXXX and BINPXXX. This header will be used
+to group fibers together during plotting.</p>
+</div></blockquote>
+<p><strong>plotbins</strong> : bool</p>
+<blockquote>
+<div><p>An extremely poorly named parameter. If True, plot every <em>fiber</em> (not aperture) with
+a value given by the value of its aperture assignment as specified by <strong>binheader</strong>.
+If False the apertures specified by <strong>binheader</strong> will be plotted as contiguous regions.</p>
+</div></blockquote>
+<p><strong>alpha</strong> : float</p>
+<blockquote>
+<div><p>The desired opacity of the plotted patches.</p>
+</div></blockquote>
+<p><strong>ax</strong> : matplotlib.axes.Axes</p>
+<blockquote>
+<div><p>If supplied, the GradPack patches will be plotted
+in this axis. This is very useful for plotting multiple pointings on
+the same plot. Setting this option causes <strong>fitsfile</strong>, <strong>imrot</strong>, <strong>invert</strong>,
+and <strong>wcsax</strong> to be ignored.</p>
+</div></blockquote>
+<p><strong>figure</strong> : matplotlib.pyplot.Figure instance</p>
+<blockquote>
+<div><p>If not None, the axis object created by <a class="reference internal" href="#GradPak_plot.plot" title="GradPak_plot.plot"><code class="xref py py-func docutils literal"><span class="pre">plot()</span></code></a> will be
+placed into this figure with the geometry specified by
+<strong>geometry</strong>.</p>
+</div></blockquote>
+<p><strong>figsize</strong> : tup</p>
+<blockquote>
+<div><p>The size of the figure, in inches. Passed directly to
+plt.figure(). This option is ignored if <strong>figure</strong> is not None</p>
+</div></blockquote>
+<p><strong>geometry</strong> : int or tup</p>
+<blockquote>
+<div><p>A pyplot-style geometry argument for placing the axis in its
+parent figure. Can be a 3 digit integer (e.g., 111) or a tuple
+(e.g., (1,1,1)</p>
+</div></blockquote>
+<p><strong>fitsfile</strong> : str -</p>
+<blockquote>
+<div><p>The name of a FITS image to draw on the plot. The
+FITS header must contain WCS parameters in the CDELT, CRVAL, CRPIX
+format.</p>
+</div></blockquote>
+<p><strong>imrot</strong> : float</p>
+<blockquote>
+<div><p>Rotation of fits image in relation to the axes. This
+is useful for, e.g., aligning a galaxy&#8217;s major axis along the x
+axis. This option is ignored if <strong>fitsfile</strong> = None or <strong>ax</strong> != None</p>
+</div></blockquote>
+<p><strong>wcsax</strong> : bool</p>
+<blockquote>
+<div><p>If True the axis labels will be in Fk5 WCS
+coordinates. This option is ignored if <strong>fitsfile</strong> = None or <strong>ax</strong> != None</p>
+</div></blockquote>
+<p><strong>invert</strong> : bool</p>
+<blockquote>
+<div><p>If True, the colormap of the fits image will be
+inverted. This option is ignored if <strong>fitsfile</strong> = None or <strong>ax</strong> != None</p>
+</div></blockquote>
+<p><strong>pa</strong> : float</p>
+<blockquote>
+<div><p>Position angle of GradPak in decimal degrees. This
+angle is measured East of North and should be whatever you told the
+telescope operator.</p>
+</div></blockquote>
+<p><strong>center</strong> : tup or list</p>
+<blockquote>
+<div><p>Length 2 tuple or list containing the coordinates of the GradPak array. 
+The units should be decimal Ra and Dec. This is probably the 
+coordinates you had listed in your cache.</p>
+</div></blockquote>
+<p><strong>reffiber</strong> : int</p>
+<blockquote>
+<div><p>The IFU fiber placed at the coordinate given in
+center. Default is fiber 105.</p>
+</div></blockquote>
+<p><strong>clabel</strong> : str</p>
+<blockquote>
+<div><p>The label of the colorbar. This is typically a
+description of the values being plotted.</p>
+</div></blockquote>
+<p><strong>cmap</strong> : str</p>
+<blockquote>
+<div><p>The name of a matplotlib colormap that will be applied
+to the data values. This is passed directly to plt.get_cmap()
+Don&#8217;t use &#8216;jet&#8217;.</p>
+</div></blockquote>
+<p><strong>minval/maxval</strong> : float</p>
+<blockquote>
+<div><p>The lower and upper limits of the colorbar,
+respectively. These are passed directly to
+matplotlib.colors.Normalize()</p>
+</div></blockquote>
+<p><strong>labelfibers</strong> : bool</p>
+<blockquote>
+<div><p>If True, each fiber will be labeled with its
+fiber number.</p>
+</div></blockquote>
+<p><strong>sky</strong> : bool</p>
+<blockquote>
+<div><p>If True, sky fibers will be plotted and the axes limits
+expanded to view the sky fibers.</p>
+</div></blockquote>
+<p><strong>exclude</strong> : list</p>
+<blockquote>
+<div><p>A list of fiber numbers to be excluded from
+plotting. These patches are simply deleted.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> : matplotlib.axes.Axes</p>
+<blockquote class="last">
+<div><p>The Axes containing all the plotting requested.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.plot_img">
+<code class="descclassname">GradPak_plot.</code><code class="descname">plot_img</code><span class="sig-paren">(</span><em>values, ax=None, figsize=(8, 8), fitsfile=None, imrot=False, invert=True, pa=0, center=[0, 0], reffiber=105, clabel='', cmap='gnuplot2', minval=None, maxval=None, numpoints=500, method='nearest', sky=False, exclude=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.plot_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an interplotaed image of the GradPak IFU using user supplied
+values. This is one of the main user-level functions in this module, and
+returns an Axes object for integration into whatever higher-level plotting
+the user is doing.</p>
+<p>It is of the utmost importance that the values input variable is of length
+109 and is ordered by fiber number.</p>
+<p>A quick example of how to use this function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">GradPak_plot</span><span class="o">.</span><span class="n">plot_img</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">109</span><span class="p">))</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This will show you a simple image of GradPack colored by fiber number and
+presented on a relative arcsec scale. More advanced usage can be achieved
+with the following options:</p>
+<p>Input Options:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>o ax (pyplot.Axes) - If supplied, the GradPack image will be plotted</dt>
+<dd>in this axis. This is very useful for plotting multiple pointings on
+the same plot. Setting this option causes fitsfile, imrot, invert,
+and wcsax to be ignored.</dd>
+<dt>o figsize (tup) - The size of the figure, in inches. Passed directly</dt>
+<dd>to plt.figure()</dd>
+<dt>o fitsfile (str) - The name of a FITS image to draw on the plot. The</dt>
+<dd>FITS header must contain WCS parameters in the CDELT, CRVAL, CRPIX
+format.</dd>
+<dt>o imrot (float) - Rotation of fits image in relation to the axes. This</dt>
+<dd>is useful for, e.g., aligning a galaxy&#8217;s major axis along the x
+axis. This option is ignored if fitsfile = None or ax != None</dd>
+<dt>o wcsax (bool) - If True the axis labels will be in Fk5 WCS</dt>
+<dd>coordinates. This option is ignored if fitsfile = None or ax != None</dd>
+<dt>o invert (bool) - If True, the colormap of the fits image will be</dt>
+<dd>inverted. This option is ignored if fitsfile = None or ax != None</dd>
+<dt>o pa (float) - Position angle of GradPak in decimal degrees. This</dt>
+<dd>angle is measured East of North and should be whatever you told the
+telescope operator.</dd>
+<dt>o center (tup or list) - Length 2 tuple or list containing the</dt>
+<dd>coordinates of the GradPak array. The units should be decimal Ra and
+Dec. This is probably the coordinates you had listed in your cache.</dd>
+<dt>o reffiber (int) - The IFU fiber placed at the coordinate given in</dt>
+<dd>center. Default is the lower left fiber (viewed on Wifoe), which is
+fiber 105.</dd>
+<dt>o clabel (str) - The label of the colorbar. This is typically a</dt>
+<dd>description of the values being plotted.</dd>
+<dt>o cmap (str) - The name of a matplotlib colormap that will be applied</dt>
+<dd>to the data values. This is passed directly to plt.get_cmap()</dd>
+<dt>o minval/maxval (float) - The lower and upper limits of the colorbar,</dt>
+<dd>respectively. These are passed directly to
+matplotlib.colors.Normalize()</dd>
+<dt>o numpoints (int) - The number of points to use when interpolating the</dt>
+<dd>GradPak IFU. This is actually the number of points to interpolate
+over in each dimension, so the total number of points will be
+numpoints**2</dd>
+<dt>o method (str) - The interpolation method used. This is passed</dt>
+<dd><p class="first">directly to spi.griddata(). The available options are:</p>
+<blockquote class="last">
+<div>&#8216;nearest&#8217;, &#8216;linear&#8217;, &#8216;cubic&#8217;</div></blockquote>
+</dd>
+<dt>o sky (bool) - If True, sky fibers will be plotted and the axes limits</dt>
+<dd>expanded to view the sky fibers.</dd>
+<dt>o exclude (list) - A list of fiber numbers to be excluded from</dt>
+<dd>plotting. These patches are simply deleted</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>Output:</dt>
+<dd>ax (pyplot.Axes) - The Axes containing all the plotting requested.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.plot_rows">
+<code class="descclassname">GradPak_plot.</code><code class="descname">plot_rows</code><span class="sig-paren">(</span><em>values</em>, <em>binheader=None</em>, <em>ylabel=''</em>, <em>label=''</em>, <em>ax=None</em>, <em>fullout=False</em>, <em>weights=None</em>, <em>err=False</em>, <em>kpc_scale=None</em>, <em>zcorr=0</em>, <em>**plot_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.plot_rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bin values by GradPak row and produce a plot of the results.  Each row&#8217;s
+value is the weighted average of the fibers in that row. This is one of
+the main user-level functions in this module, and returns an Axes object
+for integration into whatever higher-level plotting the user is doing.</p>
+<p>It is of the utmost importance that the values input variable is of length
+109 and is ordered by fiber number.</p>
+<p>A quick example of how to use this function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">GradPak_plot</span><span class="o">.</span><span class="n">plot_img</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">109</span><span class="p">))</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This will show you a simple image of GradPack colored by fiber number and
+presented on a relative arcsec scale. More advanced usage can be achieved
+with the following options:</p>
+<p>Input Options:</p>
+<blockquote>
+<div><p>o ylabel (str) - Y axis labels. If ax != None this option is ignored.</p>
+<dl class="docutils">
+<dt>o label (str) - Label applied to plotted lines. Useful for any future</dt>
+<dd>calls to ax.legend()</dd>
+<dt>o ax (pyplot.Axes) - If supplied, the GradPack patches will be plotted</dt>
+<dd>in this axis. This is very useful for plotting multiple pointings on
+the same plot. Setting this option causes fitsfile, imrot, invert,
+and wcsax to be ignored.</dd>
+<dt>o weights (length 109 numpy array) - Weights to be applied to</dt>
+<dd>individual fibers when averaging rows together. If None then all
+fibers are assumed to have equal weight.</dd>
+<dt>o err (bool) - If True the standard error is used for error bars. If</dt>
+<dd>False then the weighted standard deviation is used for plot error
+bars.</dd>
+<dt>o kpc_scale (float) - Kpc/arcsec scale used to convert height (x axis)</dt>
+<dd>to something meaningful.</dd>
+<dt>o fullout (bool) - If True the binned values and associated errors are</dt>
+<dd>returned along with the Axes.</dd>
+<dt>o <a href="#id1"><span class="problematic" id="id2">**</span></a>plot_kwargs (dict) - Plotting keywords passed directly to</dt>
+<dd>ax.errorbar</dd>
+</dl>
+</div></blockquote>
+<p>Outputs:</p>
+<blockquote>
+<div><p>o ax (pyplot.Axes) - The Axes containing all the plotting requested.</p>
+<dl class="docutils">
+<dt>o abcissa (ndarray) - The height of each binned row. If kpc_scale was</dt>
+<dd>set then the units of abcissa are kpc, otherwise they are arcsec.</dd>
+<dt>o binned_vals (ndarray) - The binned (weighted avg.) values of each</dt>
+<dd>GradPak row.</dd>
+</dl>
+<p>o binned_errs (ndarray) - The standard error of each row</p>
+<p>o binned_stds (ndarray) - The weighted standard deviation of each row</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.prep_axis">
+<code class="descclassname">GradPak_plot.</code><code class="descname">prep_axis</code><span class="sig-paren">(</span><em>fitsfile=None</em>, <em>invert=True</em>, <em>sky=False</em>, <em>imrot=False</em>, <em>wcsax=True</em>, <em>figure=None</em>, <em>figsize=(8</em>, <em>8)</em>, <em>geometry=(1</em>, <em>1</em>, <em>1)</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.prep_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a pyplot Axes object and get it ready to receive some GradPack
+patches. This includes the creation of a colorbar and setting reasonable
+limits on the plot. It is also possible to provide a FITS image that will
+be displayed on the axes with WCS axis labels.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fitsfile</strong> : str</p>
+<blockquote>
+<div><p>The name of a fits file to plot. This 
+file MUST have a well formed, useful header.</p>
+</div></blockquote>
+<p><strong>invert</strong> : bool</p>
+<blockquote>
+<div><p>If a fitsfile is provided, do you want to invert the colormap?</p>
+</div></blockquote>
+<p><strong>sky</strong> : bool</p>
+<blockquote>
+<div><p>Do you want to show sky fibers in the plot?</p>
+</div></blockquote>
+<p><strong>imrot</strong> : float</p>
+<blockquote>
+<div><p>The angle (in degrees, E of N) to rotate the fitsfile by</p>
+</div></blockquote>
+<p><strong>wcsax</strong> : bool</p>
+<blockquote>
+<div><p>Display axis labels in WCS coordinates?</p>
+</div></blockquote>
+<p><strong>figsize</strong> : list or tuple</p>
+<blockquote>
+<div><p>Width x height of figure, in inches</p>
+</div></blockquote>
+<p><strong>figure</strong> : matplotlib.pyplot.Figure instance</p>
+<blockquote>
+<div><p>If not None, the axis object created by will be placed into
+this figure with the geometry specified by <strong>geometry</strong>.</p>
+</div></blockquote>
+<p><strong>geometry</strong> : int or tup</p>
+<blockquote>
+<div><p>A pyplot-style geometry argument for placing the axis in its
+parent figure. Can be a 3 digit integer (e.g., 111) or a tuple
+(e.g., (1,1,1)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ax</strong> : matplotlib.axes.Axes</p>
+<blockquote>
+<div><p>The requested axis, all setup and ready for plotting</p>
+</div></blockquote>
+<p><strong>hdu</strong> : None or pyfits.PrimaryHDU</p>
+<blockquote class="last">
+<div><p>The HDU used to create the WCS axis</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.prep_patches">
+<code class="descclassname">GradPak_plot.</code><code class="descname">prep_patches</code><span class="sig-paren">(</span><em>values, binheader=None, plotbins=False, hdu=None, pa=0, center=[0, 0], reffiber=105, sky=False, exclude=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.prep_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate GradPak patches and prepare them for plotting. This function is
+used to transform the patches and remove any unwanted fibers (sky or user
+defined).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>values</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>Should be length 109 and contain the data value of each 
+fiber, in order.</p>
+</div></blockquote>
+<p><strong>binheader</strong> : pyfits.header.Header</p>
+<blockquote>
+<div><p>A header (probably produced by <a class="reference internal" href="GradPak_bin.html#module-GradPak_bin" title="GradPak_bin"><code class="xref py py-mod docutils literal"><span class="pre">GradPak_bin</span></code></a>)
+containing information on what fibers went into what
+apertures</p>
+</div></blockquote>
+<p><strong>plotbins</strong> : bool</p>
+<blockquote>
+<div><p>Somewhat strangely named; if True plot the raw GradPak
+fibers, regardless of aperture assignment (the actual
+fiber values will still be taken on an
+aperture-by-aperture basis).</p>
+</div></blockquote>
+<p><strong>hdu</strong> : pyfits.PrimaryHDU</p>
+<blockquote>
+<div><p>Contains a header with a WCS solution that is used to 
+transform the patches.</p>
+</div></blockquote>
+<p><strong>pa, center, reffiber</strong> : float</p>
+<blockquote>
+<div><p>Parameters that describe how to transform the
+patches. See <a class="reference internal" href="#GradPak_plot.transform_patches" title="GradPak_plot.transform_patches"><code class="xref py py-func docutils literal"><span class="pre">transform_patches()</span></code></a> for more info.</p>
+</div></blockquote>
+<p><strong>sky</strong> : bool</p>
+<blockquote>
+<div><p>If True, plot sky fibers</p>
+</div></blockquote>
+<p><strong>exclude</strong> : list</p>
+<blockquote>
+<div><p>List of fiber numbers to be excluded from the plot. If a
+<strong>binheader</strong> is provided this list should contain
+aperture numbers, not fiber numbers.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>patches</strong> : list of matplotlib.patches.Circle</p>
+<blockquote>
+<div><p>Transformed and culled list of pyplot Patch objects</p>
+</div></blockquote>
+<p><strong>pvals</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>Culled list of values so that pval[i] is the value of patch[i]</p>
+</div></blockquote>
+<p><strong>refcenter</strong> : list of float</p>
+<blockquote class="last">
+<div><p>The pixel center of the reference fiber</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.transform_patches">
+<code class="descclassname">GradPak_plot.</code><code class="descname">transform_patches</code><span class="sig-paren">(</span><em>patches, pa=0, center=[0, 0], reffiber=105, scale=1.0, refpatches=None</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.transform_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate and shift the centers of the GradPak Patches.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>patches</strong> : list of matplotlib.patches.Circle</p>
+<blockquote>
+<div><p>GradPak patches produced by GradPak_patches()</p>
+</div></blockquote>
+<p><strong>pa</strong> : float</p>
+<blockquote>
+<div><p>Position angle, in degrees, of GradPak on sky.</p>
+</div></blockquote>
+<p><strong>center</strong> : list</p>
+<blockquote>
+<div><p>Tuple or length 2 list containing the position, in decimal 
+degrees, of the fiber specified in <strong>reffiber</strong></p>
+</div></blockquote>
+<p><strong>reffiber</strong> : int</p>
+<blockquote>
+<div><p>The fiber to place at center</p>
+</div></blockquote>
+<p><strong>scale</strong> : float</p>
+<blockquote>
+<div><p>Radial scale factor, in px/arcsec. This is needed because 
+Patches are plotted in pixel space.</p>
+</div></blockquote>
+<p><strong>refpatches</strong> : None or list of matplotlib.patches.Circle</p>
+<blockquote>
+<div><p>A full set of all GradPak patches that are used to compute the
+transformed locations of binned patches.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>patches</strong> : list of pyplot.Patches</p>
+<blockquote class="last">
+<div><p>The shifted, rotated, and scaled patches</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GradPak_plot.wcs2pix">
+<code class="descclassname">GradPak_plot.</code><code class="descname">wcs2pix</code><span class="sig-paren">(</span><em>patches</em>, <em>header</em><span class="sig-paren">)</span><a class="headerlink" href="#GradPak_plot.wcs2pix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a pyfits header object, convert the centers of the GradPak patches
+from WCS coordinates (decimal degrees) to pixel coordinates on the
+corresponding FITs file. Radial scaling is done as part of
+transform_patches().</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">GradPak_plot</a><ul>
+<li><a class="reference internal" href="#useful-example">Useful Example</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="GradPak_bin.html"
+                        title="previous chapter">GradPak_bin</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="GradPak_bin.html" title="GradPak_bin"
+             >previous</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">GradPak 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Arthur Eigenbrot.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4a0+.
+    </div>
+  </body>
+</html>
