@@ -40,7 +40,8 @@ import pyfits
 import GradPak_plot as GPP
 import matplotlib.pyplot as plt
 
-def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[], logfile=None):
+def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[], 
+        logfile=None, logfits=None):
     """Bin GradPak fibers along a row until the desired SNR is achieved.
 
     The way fibers are grouped together is somewhat simplistic, but the
@@ -95,6 +96,16 @@ def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[], logfile=
         A list containing fibers to exlcude from binning. Sky fibers are
         automatically excluded and fiber numbers start at 1.
 
+    logfile : str
+        Name of a log file that will contain, for each aperture, a
+        list of the individual fibers and the total S/N.
+
+    logfits : str
+        Name of a FITS file that will contain a separate HDU for each
+        aperture. Each HDU will contain an array with two dimensions
+        that records the fiber numbers and associated weights for that
+        aperture.
+        
     Returns
     -------
     
@@ -138,7 +149,10 @@ def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[], logfile=
 
     if logfile is not None:
         lf = open(logfile,'w')
-
+        
+    if logfits is not None:
+        log_HDUs = [] #This will hold [fiber_list, weight_list] for each aperture
+        
     for i in range(row_pos.size):
 
         if row_pos[i] > 80:
@@ -196,6 +210,8 @@ def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[], logfile=
             print 'binned aperture {}: {}, SNR: {}'.format(binnum,fibers, binsn)
             if logfile is not None:
                 lf.write('binned aperture {}: {}, SNR: {}\n'.format(binnum,fibers, binsn))
+            if logfits is not None:
+                log_HDUs.append(pyfits.ImageHDU(np.vstack([fibers, snstack.T[0]]).T))
 
             bin_x_pos = np.mean(xpos)
             bin_y_pos = np.mean(ypos)
@@ -217,6 +233,14 @@ def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[], logfile=
         writeto('{}.ms.fits'.format(outputfile),clobber=True)
     pyfits.PrimaryHDU(finale, hdu.header).\
         writeto('{}.me.fits'.format(outputfile),clobber=True)
+
+    if logfits is not None:
+        lP = pyfits.PrimaryHDU()
+        lP.header.update('HDUDIM','APERTURE')
+        lP.header.update('AXIS1','0: FIBER NUMBER 1: WEIGHT')
+        lP.header.update('AXIS2','FIBERS')
+        pyfits.HDUList([lP] + log_HDUs).writeto(logfits, clobber=True)
+        
     return finalf, finale, fibdict
 
 def create_bin(fstack, estack, snstack):
