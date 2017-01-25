@@ -211,7 +211,7 @@ def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[],
             if logfile is not None:
                 lf.write('binned aperture {}: {}, SNR: {}\n'.format(binnum,fibers, binsn))
             if logfits is not None:
-                log_HDUs.append(pyfits.ImageHDU(np.vstack([fibers, snstack.T[0]]).T))
+                log_HDUs.append(pyfits.ImageHDU(np.vstack([fibers, snstack.T[0]])))
 
             bin_x_pos = np.mean(xpos)
             bin_y_pos = np.mean(ypos)
@@ -237,8 +237,8 @@ def bin(datafile, errfile, SNR, outputfile, waverange=None, exclude=[],
     if logfits is not None:
         lP = pyfits.PrimaryHDU()
         lP.header.update('HDUDIM','APERTURE')
-        lP.header.update('AXIS1','0: FIBER NUMBER 1: WEIGHT')
-        lP.header.update('AXIS2','FIBERS')
+        lP.header.update('AXIS1','FIBERS')
+        lP.header.update('AXIS2','0: FIBER NUMBER 1: WEIGHT')
         pyfits.HDUList([lP] + log_HDUs).writeto(logfits, clobber=True)
         
     return finalf, finale, fibdict
