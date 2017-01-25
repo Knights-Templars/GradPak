@@ -307,6 +307,34 @@ def compute_SN(signal, noise, idx=None):
 
     return np.mean(signal[idx][zidx]/(noise[idx][zidx]))
 
+def apply_bin(datafile, logfits, output):
+
+    hdu = pyfits.open(datafile)[0]
+    data = hdu.data
+    header = hdu.header
+    binfo = pyfits.open(logfits)
+    finalf = np.zeros(data.shape[1])
+
+    for b in range(len(binfo) - 1):
+        info = binfo[b+1].data
+        fibers = info[0].astype(int)
+        flux = np.sum(data[fibers - 1]*info[1][:,None], axis=0)/np.sum(info[1])
+        finalf = np.vstack((finalf, flux))
+        if fibers[0] in np.arange(1,20) - 1:
+            header.update('BIN{:03}S'.format(b+1), 200)
+        elif fibers[0] in np.arange(20,44) - 1:
+            header.update('BIN{:03}S'.format(b+1), 300)
+        elif fibers[0] in np.arange(44,63) - 1:
+            header.update('BIN{:03}S'.format(b+1), 400)
+        elif fibers[0] in np.arange(63,88) - 1:
+            header.update('BIN{:03}S'.format(b+1), 500)
+        elif fibers[0] in np.arange(88,110) - 1:
+            header.update('BIN{:03}S'.format(b+1), 600)
+        
+    pyfits.PrimaryHDU(finalf[1:],header).writeto(output, clobber=True)
+
+    return
+
 def create_locations(binfile, galcenter=[35.637962,42.347629], 
                      ifucenter=[35.637962,42.347629], reffiber=105,
                      galpa=293.3, ifupa=295.787, kpc_scale=0.0485):
